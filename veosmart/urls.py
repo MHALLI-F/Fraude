@@ -15,7 +15,11 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path,include
-from VEO.views import extraction_traitement, dossierstrait, getVeos,get_dossiers, get_veoservices, template, filtre_regAT,filtre_regT,filtre_reg,test_filtre_regAT,test_filtre_regT,test_filtre_reg,filterDosT,filterDosAT,test_filterDosAT,test_filtre,test_filterDosT,test_observation,test_filterDos,test_dossierstrait,test_dossiersAtrait, dossierstrait, test_inis,test_details, inis,details,filterDos, filtre, observation, dossiersAtrait,TrdateT,TrdateIT,TrDosT,TrImmatT,TrDsinT,TrDcrT,TrTypeT,TrStatT,TrExpT,TrIAdvT,TrRFT,TrStatDouteT,TrobsT , TrDosIT,TrImmatIT,TrDsinIT,TrDcrIT,TrTypeIT,TrStatIT,TrExpIT,TrIAdvIT,TrRFIT,TrStatDouteIT,TrobsIT, TrDosAT,TrImmatAT,TrDsinAT,TrDcrAT,TrTypeAT,TrStatAT,TrExpAT,TrIAdvAT,TrRFAT,TrStatDouteAT,TrobsAT , TrDosIAT,TrImmatIAT,TrDsinIAT,TrDcrIAT,TrTypeIAT,TrStatIAT,TrExpIAT,TrIAdvIAT,TrRFIAT,TrStatDouteIAT,TrobsIAT, TrDos,TrImmat,TrDsin,TrDcr,TrType,TrStat,TrExp,TrIAdv,TrRF,TrStatDoute,Trobs , TrDosI,TrImmatI,TrDsinI,TrDcrI,TrTypeI,TrStatI,TrExpI,TrIAdvI,TrRFI,TrStatDouteI,TrobsI,test_TrdateT,test_TrdateIT,test_TrDosT,test_TrImmatT,test_TrDsinT,test_TrDcrT,test_TrTypeT,test_TrStatT,test_TrExpT,test_TrIAdvT,test_TrRFT,test_TrStatDouteT,test_TrobsT , test_TrDosIT,test_TrImmatIT,test_TrDsinIT,test_TrDcrIT,test_TrTypeIT,test_TrStatIT,test_TrExpIT,test_TrIAdvIT,test_TrRFIT,test_TrStatDouteIT,test_TrobsIT, test_TrDosAT,test_TrImmatAT,test_TrDsinAT,test_TrDcrAT,test_TrTypeAT,test_TrStatAT,test_TrExpAT,test_TrIAdvAT,test_TrRFAT,test_TrStatDouteAT,test_TrobsAT , test_TrDosIAT,test_TrImmatIAT,test_TrDsinIAT,test_TrDcrIAT,test_TrTypeIAT,test_TrStatIAT,test_TrExpIAT,test_TrIAdvIAT,test_TrRFIAT,test_TrStatDouteIAT,test_TrobsIAT, test_TrDos,test_TrImmat,test_TrDsin,test_TrDcr,test_TrType,test_TrStat,test_TrExp,test_TrIAdv,test_TrRF,test_TrStatDoute,test_Trobs , test_TrDosI,test_TrImmatI,test_TrDsinI,test_TrDcrI,test_TrTypeI,test_TrStatI,test_TrExpI,test_TrIAdvI,test_TrRFI,test_TrStatDouteI,test_TrobsI
+from VEO.views import *
+
+from django_plotly_dash.views import add_to_session
+from VEO import views  
+
 
 
 from accounts.views import login_view ,deconnexion
@@ -26,6 +30,7 @@ from django.conf import settings
 urlpatterns = [
 
 # API Urls
+    path('django_plotly_dash/', include('django_plotly_dash.urls')),
 
     path('get_dossier/<str:Dossier>/',get_veoservices,name="get_veoservices"),
     path('get_dossiers/',get_dossiers,name="get_dossiers"),
@@ -36,6 +41,7 @@ urlpatterns = [
     path('home/', inis,name="inis"),
     path('details/<str:Dossier>/',details,name="details"),
     path('filtre/',filtre,name="filtre"),
+    path('send-test-email/', send_test_email, name='send_test_email'),
 
      #path('statutdoute/',statutdoute,name="statutdoute"),
     path('filtre_regT/',filtre_regT,name="filtre_regT"),
@@ -46,6 +52,21 @@ urlpatterns = [
     path('filterDos/',filterDos,name="filterDos"),
     path('filterDosAT/',filterDosAT,name="filterDosAT"),
     path('filterDosT/',filterDosT,name="filterDosT"),
+
+    path('filter_veoservices_by_date_and_status/',filter_veoservices_by_date_and_status,name="filter_veoservices_by_date_and_status"),
+    path('filter_veoservices_by_date_and_statusAT/',filter_veoservices_by_date_and_statusAT,name="filter_veoservices_by_date_and_statusAT"),
+    path('filter_veoservices_by_date_and_statusT/',filter_veoservices_by_date_and_statusT,name="filter_veoservices_by_date_and_statusT"),
+
+
+    path('filter/home/', lambda request: filter_veoservices_by_date_and_status(request, 'home.html'), name='filter_home'),
+    path('filter/dossieratrait/', lambda request: filter_veoservices_by_date_and_status(request, 'dossieratrait.html'), name='filter_dossieratrait'),
+    path('filter/dossiertrait/', lambda request: filter_veoservices_by_date_and_status(request, 'dossiertrait.html'), name='filter_dossiertrait'),
+
+    path('filter/home/', filter_veoservices_by_date_and_status, name='filter_home'),
+    path('filter/dossieratrait/', filter_veoservices_by_date_and_statusAT, name='filter_dossieratrait'),
+    path('filter/dossiertrait/', filter_veoservices_by_date_and_statusT, name='filter_dossiertrait'),
+
+
  
     path('home/login/', login_view),
     path('login/', login_view),
@@ -126,18 +147,11 @@ urlpatterns = [
     #path('', include("django.contrib.auth.urls")),
     path('', login_view),
    # path('apis/', include("apis.urls"))
- 
-   
-
-
-
    ###############################################################################
 
    ####################       Espace  recette        #############################
 
    ###############################################################################
-
-
     path('template/', template,name="template"),
     path('home_test/', test_inis,name="test_inis"),
     path('details_test/<str:Dossier>/',test_details,name="test_details"),
@@ -232,6 +246,12 @@ urlpatterns = [
     path('TrobsIAT_test/',test_TrobsIAT,name="test_TrobsIAT"),
     path('TrdateT_test/',test_TrdateT,name="test_TrdateT"),
     path('TrdateIT_test/',test_TrdateIT,name="test_TrdateIT"),
+
+    path('chart/',chart,name="chart"),
+    path('dashboard/', dashboard_data, name='dashboard_data'),
+    path('test-fraud-alert/',test_fraud_alert, name='test_fraud_alert'),
+
+
   
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 #+static   pour  les images

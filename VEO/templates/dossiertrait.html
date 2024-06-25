@@ -1,454 +1,407 @@
 <!DOCTYPE html>
 {% load static %}
+{% load mytag %}
+
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, shrinkequiv="x-ua-compatible" content="ie=edge" />
-<title>VEOSMART | Dossiers traités</title>
-<link rel="icon" href="img/mdb-favicon.ico" type="image/x-icon" />
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
-<link rel="stylesheet" href="{% static 'css/mdb.min.css' %}" />
-<link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
-<style>
-	.right-tabs .nav {
-		float: right;
-		border-bottom: 0px;
-	}
-	.right-tabs .nav li { float: left }
-	.right-tabs .tab-content {
-		float: left;
-		border-top: 1px solid #ddd;
-		margin-top: -1px;
-	}
-  .left-tabs .nav {
-		float: left;
-		border-bottom: 0px;
-	}
-	.left-tabs .nav li { float: right }
-	.left-tabs .tab-content {
-		float: left;
-		border-top: 1px solid #ddd;
-		margin-top: -1px;
-	}
-  
-  td,
-th {
-    border: 1px solid rgb(190, 190, 190);
-    padding: 10px;
-}
+    <meta charset="utf-8">
+    <title>VEOSMART | Dossiers traités</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
 
-td {
-    text-align: center;
-}
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png" />
 
-tr:nth-child(even) {
-    background-color: rgb(255, 254, 254);
-}
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-th[scope="col"] {
-    background-color: #cccccc;
-    color: #fff;
-}
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
-th[scope="row"] {
-    background-color: #cecece;
-}
+    <!-- Libraries Stylesheet -->
+    <link href="{% static 'lib/owlcarousel/assets/owl.carousel.min.css' %}" rel="stylesheet">
+    <link href="{% static 'lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css' %}" rel="stylesheet" />
 
-caption {
-    padding: 10px;
-    caption-side: bottom;
-}
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
 
-table {
-    border-collapse: collapse;
-    border: 2px solid rgb(200, 200, 200);
-    letter-spacing: 1px;
-    font-family: sans-serif;
-    font-size: .8rem;
-}
-  </style>
+    <!-- Template Stylesheet -->
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
 </head>
+
 <body>
-{% load static %}
+    <div class="container-s position-relative bg-white d-flex p-0">
 
-<header>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <!-- Container wrapper -->
-  
-      <!-- Toggle button -->
-    <!-- Container wrapper -->
-    <div class="container-fluid">
-    <!-- Toggle button -->
-    
-    <a class="navbar-brand" href="/home">
-      <img
-      src="{% static 'favicon.png' %}"
-      height="120"
-      width ="160"
-      alt=""
-    
-      style="margin-top: 0px; margin-left: 30px;"/>
-      </a>
-    
-  
-    
-    
+<!-- Sidebar Start -->
+<div class="sidebar pe-4 pb-3">
+    <nav class="navbar bg-light navbar-light">
+        <!-- Modification de flex-direction à column -->
+        <div class="navbar-brand mx-4 mb-3" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: auto;">
+            <a href="/home">
+                <img src="{% static 'img/logo.png' %}" alt="" style="width: 120px; height: 100px;">
+            </a>
+            {% if user.is_authenticated %}
+                <!-- Texte sous le logo sans margin-left -->
+                <div style="display: flex; align-items: center;">
+                    <p style="margin-top: 10px; margin-bottom: 0;">Bonjour, {{ user_name }}</p>
+                </div>
+            {% endif %}
+        </div>
+        <div class="navbar-nav w-100">
+            <a href="/home" class="nav-item nav-link "><i class="fa fa-home me-2"></i>Accueil</a>
+            <a href="/dt" class="nav-item nav-link" style="white-space: nowrap;">
+                <i class="fa fa-hourglass-start me-2"></i>
+                Dossier à traiter<span class="badge rounded-pill badge-notification bg-danger" style="margin-left: 5px; vertical-align: middle;">{% get_total_a_traiter %}</span>
+            </a>
+            <a href="/dtraités" class="nav-item nav-link active"><i class="fa fa-th me-2"></i>Dossier traité</a>
+            {% if SupUse %}
+                <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace Recette</a>
+                <a href="/admin" class="nav-item nav-link"><i class="fa fa-user-cog me-2"></i>Admin</a>
+            {% endif %}
+            <a href="/dashboard" class="nav-item nav-link"><i class="fa fa-chart-line me-2"></i>Statistique</a>
+            <a href="/logout/" class="nav-item nav-link"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a>
+        </div>
     </nav>
-
-
-    <div class="right-tabs clearfix">
-      <ul class="nav nav-tabs">
-        {% if SupUse == True %}
-        <li><a
-        class="nav-link"
-        id="ex3-tab-3"
-        data-mdb-toggle="tab"
-        href="/home_test"
-        role="tab"
-        aria-controls="ex3-tabs-3"
-        aria-selected="false"
-        >Espace Recette</a
-        >
-      </li>
-      {% endif %}
-    {% if SupUse == True %}
-        <li><a
-        class="nav-link"
-        id="ex3-tab-3"
-        data-mdb-toggle="tab"
-        href="/admin"
-        role="tab"
-        aria-controls="ex3-tabs-3"
-        aria-selected="false"
-        >Admin</a
-        >
-      </li>
-      {% endif %}
-        <li><a
-        class="nav-link"
-        id="ex3-tab-3"
-        data-mdb-toggle="tab"
-        href="/logout/" 
-        onclick="return confirm('Vous êtes sur de se  déconnecter?');"
-        role="tab"
-        aria-controls="ex3-tabs-3"
-        aria-selected="false"
-        >Déconnexion</a
-        >
-      </li>
-
-      </ul>
-     
-      <div class="left-tabs clearfix">
-    <!-- Tabs navs -->
-    <ul class="nav nav-tabs mb-3" id="ex1" role="tablist">
-      <li class="nav-item" role="presentation">
-        <a
-        class="nav-link"
-        id="ex3-tab-1"
-        data-mdb-toggle="tab"
-        href="/home"
-        role="tab"
-        aria-controls="ex3-tabs-1"
-        aria-selected="false"
-        >Accueil</a>
-      </li>
-      <li class="nav-item" role="presentation">
-        <a
-        class="nav-link"
-        id="ex3-tab-2"
-        data-mdb-toggle="tab"
-        href="/dt"
-        role="tab"
-        aria-controls="ex3-tabs-2"
-        aria-selected="false">Dossiers à traiter &nbsp&nbsp&nbsp
-        <span class="badge rounded-pill badge-notification bg-danger"  >{{NBDossiers}} </span></a>
-      </li>
-      <li class="nav-item" role="presentation">
-        <a
-        class="nav-link active"
-        id="ex3-tab-3"
-        data-mdb-toggle="tab"
-        href="/dtraités"
-        role="tab"
-        aria-controls="ex3-tabs-3"
-        aria-selected="true"
-        >Dossiers traités</a
-        >
-      </li>
-    
-
-      </ul>
-      <!-- Tabs navs -->
-      
-    
-    
-    
- 
+</div>
+<!-- Sidebar End -->
 
 
 
+
+    <!-- Content Start -->
+    <div class="content">
+
+        <style>
+            .stats-card {
+                min-height: 150px; 
+            }
+        </style>
+
+        <script type="text/javascript">document.getElementById("search").value="{{query}}"</script>
+        
+        <center>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <script type="text/javascript">document.getElementById("search").value="{{query}}"</script>
+                </li>
+            </ul>
+        </center>
+
+        <div class="container-fluid pt-4 px-4">
+            <form class="row row-cols-lg-auto g-3 align-items-center" action="{% url 'filtre_regT' %}" method="GET">
+                <div class="col-sm-10">
+                    <select class="nav-link dropdown-toggle rounded border border-gray" name="reg" id="select" autocomplete="off" required style="color: black;">
+                        <option selected>Séléctionner une règle</option>
+                        <option value="R1">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement confirmé frauduleux. (Vtiger)</option>
+                        <option value="R2">Sinistre survenu en moins d'un mois après date début d'assurance de la partie principale.</option>
+                        <option value="R3">Sinistre survenu en moins d'un mois après date début d'assurance de la partie adverse.</option>
+                        <option value="R4">L'une des immatriculations (principale ou adverse) a été signalée comme "Souscription NOK".</option>
+                        <option value="R5">La date d'assistance est après 20h et avant 7h du matin.</option>
+                        <option value="R6">L'un des deux véhicules a deux dossiers assistance en moins de 3 mois.</option>
+                        <option value="R7">L'une des immatriculations (principale ou adverse) a déjà fait l'objet d'un sinistre sur les derniers 12 mois.</option>
+                        <option value="R8">L'un des deux véhicules est un cyclo.</option>
+                        <option value="R9">Le sinistre est survenu en moins d'un mois avant la fin de validité du contrat ( Grantie Tierce uniquement).</option>
+                        <option value="R10">Le même numéro de chassis remonte précédement avec une autre immatriculation.</option>
+                        <option value="R11">Le montant du devis varie entre 18000 dhs et 20000 dhs.</option>
+                        <option value="R12">Les deux immatriculations ont été toutes les deux impliquées précédement sur un autre sinistre.</option>
+                        <option value="R14">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historique signalé douteux. (OMEGA)</option>
+                        <option value="R13_confirme">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement confirmé frauduleux. (OMEGA)</option>
+                        <option value="R12_rejete">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement avec doute rejeté. (OMEGA)</option>
+                        <option value="R15">L'assuré principal et l'adversaire portent le même nom de famille.</option>
+                        <option value="R16">Le garage en charge du dossier a déjà été impliqué dans une affaire de fraude.</option>
+                        <option value="R17">L'intermédiaire est commun aux deux parties impliquées dans le sinistre.</option>
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Filtrer</button>
+                    </div>
+                </div>
+            </form>
+
+            <br/>
+
+            <form class="d-flex input-group w-auto" action="{% url 'filterDosT' %}" method="GET">
+                <div class="form-outline">
+                    <input type="search" class="form-control rounded" name="search" placeholder="Dossier ou Matricule" />
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+
+            <br/>
+
+            <form action="{% url 'filter_dossiertrait' %}" method="get" class="form-inline">
+                <div class="form-group">
+                    <label for="fixed_date">Date de création:</label>
+                    <input type="date" id="fixed_date" name="fixed_date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="statut">Statut:</label>
+                    <select id="statut" name="statut" class="form-control">
+                        <option value="">Sélectionner un statut</option>
+                        <option value="Dossier créé">Dossier créé</option>
+                        <option value="Dossier envoyé">Dossier envoyé</option>
+                        <option value="Rdv replanifié">Rdv replanifié</option>
+                        <option value="CDC envoyé au garage">CDC envoyé au garage</option>
+                        <option value="Photos Avant">Photos Avant</option>
+                        <option value="Offre communiquée">Offre communiquée</option>
+                        <option value="Devis envoyé par le garage">Devis envoyé par le garage</option>
+                        <option value="Instance Accord compagnie">Instance Accord compagnie</option>
+                        <option value="Instance Accord Expert2">Instance Accord Expert2</option>
+                        <option value="Accord à modifier">Accord à modifier</option>
+                        <option value="Accord à envoyer">Accord à envoyer</option>
+                        <option value="Devis validé">Devis validé</option>
+                        <option value="Demande 2e accord">Demande 2e accord</option>
+                        <option value="Attente facture">Attente facture</option>
+                        <option value="Instance FFT/rapport">Instance FFT/rapport</option>
+                        <option value="Instance RDV Client ">Instance RDV Client</option>
+                        <option value="Instance publication rapport">Instance publication rapport</option>
+                        <option value="Dossier complété">Dossier complété</option>
+                        <option value="Dossier réglé">Dossier réglé</option>
+                        <option value="Dossier sans suite">Dossier sans suite</option>
+                        <option value="Dossier sans suite après expertise">Dossier sans suite après expertise</option>
+                        <option value="Annulé par l'expert">Annulé par l'expert</option>
+                        <option value="Dossier traité en Hifad">Dossier traité en Hifad</option>
+                        <option value="Rapport rejeté">Rapport rejeté</option>
+                        <option value="Changement procédure">Changement procédure</option>
+                        <option value="Dossier en instruction">Dossier en instruction</option>
+                        <option value="Dossier rejeté">Dossier rejeté</option>
+                    </select>
+                </div>
+                <br/>
+                <button type="submit" class="btn btn-primary">Filtrer</button>
+            </form>
+
+            <br/>
+
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Dossiers Traités</h6>
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination justify-content-end">
+                            {% if list_Veo_recente.has_previous %}
+                                <li class="page-item enabled">
+                                    <a class="page-link" href="?page=1"><i class="fas fa-angle-double-left"></i></a>
+                                </li>
+                                <li class="page-item enabled">
+                                    <a class="page-link" href="?page={{list_Veo_recente.previous_page_number}}">
+                                        <i class="fas fa-angle-left"></i> Précédent
+                                    </a>
+                                </li>
+                            {% endif %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href=#>{{ list_Veo_recente.number }} sur {{ list_Veo_recente.paginator.num_pages }}</a>
+                            </li>
+                            {% if list_Veo_recente.has_next %}
+                                <li class="page-item enabled">
+                                    <a class="page-link" href="?page={{list_Veo_recente.next_page_number }}">
+                                        Suivant <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item enabled">
+                                    <a class="page-link" href="?page={{ list_Veo_recente.paginator.num_pages }}">
+                                        <i class="fas fa-angle-double-right"> </i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+
+                <style>
+                    .custom-table th,
+                    .custom-table td {
+                        vertical-align: middle;
+                    }
+
+                    .custom-table th {
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                    }
+
+                    .custom-table th a {
+                        display: inline-block;
+                        margin-left: 5px;
+                        color: inherit;
+                    }
+
+                    .table-responsive {
+                        overflow-x: auto;
+                        margin-left: -15px; 
+                        margin-right: -15px; 
+                        border-radius: 5px; 
+                    }
+
+                    .table-responsive::-webkit-scrollbar {
+                        height: 5px; 
+                        width: 4px;
+                    }
+
+                    .table-responsive::-webkit-scrollbar-thumb {
+                        background-color: #b5b3b3; 
+                        border-radius: 6px; 
+                    }
+
+                    .table-responsive::-webkit-scrollbar-thumb:hover {
+                        background-color: #555; 
+                    }
+                </style>
+
+                <div class="table-responsive pt-4 px-4" style="margin-left: -30px;">
+                    <table class="table table-hover mb-0 custom-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col"><a href="/TrDosT" class="{% if tri == 1 or tri == 12 %}active-tri{% endif %}">Dossier</a></th>
+                                <th scope="col"><a href="/TrImmatT" class="{% if tri == 2 or tri == 13 %}active-tri{% endif %}">Matricule</a></th>
+                                <th scope="col"><a href="/TrDsinT" class="{% if tri == 3 or tri == 14 %}active-tri{% endif %}">Date sinistre</a></th>
+                                <th scope="col"><a href="/TrDcrT" class="{% if tri == 4 or tri == 15 %}active-tri{% endif %}">Date création</a></th>
+                                <th scope="col"><a href="/TrTypeT" class="{% if tri == 5 or tri == 16 %}active-tri{% endif %}">Type</a></th>
+                                <th scope="col"><a href="/TrStatT" class="{% if tri == 6 or tri == 17 %}active-tri{% endif %}">Statut</a></th>
+                                <th scope="col">Photos Avant</th>
+                                <th scope="col"><a href="/TrRFT" class="{% if tri == 9 or tri == 20 %}active-tri{% endif %}">RateFraude</a></th>
+                                <th scope="col"><a href="/TrExpT" class="{% if tri == 7 or tri == 18 %}active-tri{% endif %}">Expert</a></th>
+                                <th scope="col"><a href="/TrIAdvT" class="{% if tri == 8 or tri == 19 %}active-tri{% endif %}">Immat_Adv</a></th>
+                                <th scope="col"><a href="/TrdateT" class="{% if tri == 23 or tri == 24 %}active-tri{% endif %}">Date Traitement</a></th>
+                                <th scope="col"><a href="/TrStatDouteT" class="{% if tri == 10 or tri == 21 %}active-tri{% endif %}">Statut doute</a></th>
+                                <th scope="col"><a href="/TrobsT" class="{% if tri == 11 or tri == 22 %}active-tri{% endif %}">Observation</a></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if list_Veo_recente|length == 0 %}
+                                <tr><td colspan="14" class="text-center">Aucun dossier traité</td></tr>
+                            {% else %}
+                                {% for i in list_Veo_recente %}
+                                    <tr>
+                                        <th scope="row">{{ i.Dossier }}</th>
+                                        <td scope="row">{{ i.Immatriculation }}</td>
+                                        <td scope="row">{{ i.Date_sinistre }}</td>
+                                        <td scope="row">{{ i.Date_création }}</td>
+                                        <td>{{ i.Procédure }}</td>
+                                        <td>{{ i.Statut }}</td>
+                                        <td>{% if i.Photos_Avant %}<a href="{{ i.Photos_Avant }}" target="_blank"><i class="far fa-image fa-2x"></i></a>{% endif %}</td>
+                                        <td><a href="{% url 'details' i.id %}">{{ i.RateFraude }}%</a></td>
+                                        <td>{{ i.Expert }}</td>
+                                        <td>{{ i.ImmatriculationAdverse }}</td>
+                                        <td>{{ i.date_obs }}</td>
+                                        <td>{{ i.statutdoute }}</td>
+                                        <td>{{ i.observation }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Deuxième Tableau - Dossiers Avec doute confirmé -->
+
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h6 class="mb-0">Dossiers Avec doute confirmé</h6>
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination justify-content-end">
+                            {% if list_Veo_recente.has_previous %}
+                                <li class="page-item enabled">
+                                    <a class="page-link" href="?page=1"><i class="fas fa-angle-double-left"></i></a>
+                                </li>
+                                <li class="page-item enabled">
+                                    <a class="page-link" href="?page={{list_Veo_recente.previous_page_number}}">
+                                        <i class="fas fa-angle-left"></i> Précédent
+                                    </a>
+                                </li>
+                            {% endif %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href=#>{{ list_Veo_recente.number }} sur {{ list_Veo_recente.paginator.num_pages }}</a>
+                            </li>
+                            {% if list_Veo_recente.has_next %}
+                                <li class="page-item enabled">
+                                    <a class="page-link" href="?page={{list_Veo_recente.next_page_number }}">
+                                        Suivant <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item enabled">
+                                    <a class="page-link" href="?page={{ list_Veo_recente.paginator.num_pages }}">
+                                        <i class="fas fa-angle-double-right"> </i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="table-responsive pt-4 px-4" style="margin-left: -30px;">
+                    <table class="table table-hover mb-0 custom-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col"><a href="/TrDosT" class="{% if tri == 1 or tri == 12 %}active-tri{% endif %}">Dossier</a></th>
+                                <th scope="col"><a href="/TrImmatT" class="{% if tri == 2 or tri == 13 %}active-tri{% endif %}">Matricule</a></th>
+                                <th scope="col"><a href="/TrDsinT" class="{% if tri == 3 or tri == 14 %}active-tri{% endif %}">Date sinistre</a></th>
+                                <th scope="col"><a href="/TrDcrT" class="{% if tri == 4 or tri == 15 %}active-tri{% endif %}">Date création</a></th>
+                                <th scope="col"><a href="/TrTypeT" class="{% if tri == 5 or tri == 16 %}active-tri{% endif %}">Type</a></th>
+                                <th scope="col"><a href="/TrStatT" class="{% if tri == 6 or tri == 17 %}active-tri{% endif %}">Statut</a></th>
+                                <th scope="col">Photos Avant</th>
+                                <th scope="col"><a href="/TrRFT" class="{% if tri == 9 or tri == 20 %}active-tri{% endif %}">RateFraude</a></th>
+                                <th scope="col"><a href="/TrExpT" class="{% if tri == 7 or tri == 18 %}active-tri{% endif %}">Expert</a></th>
+                                <th scope="col"><a href="/TrIAdvT" class="{% if tri == 8 or tri == 19 %}active-tri{% endif %}">Immat_Adv</a></th>
+                                <th scope="col"><a href="/TrdateT" class="{% if tri == 23 or tri == 24 %}active-tri{% endif %}">Date Traitement</a></th>
+                                <th scope="col"><a href="/TrStatDouteT" class="{% if tri == 10 or tri == 21 %}active-tri{% endif %}">Statut doute</a></th>
+                                <th scope="col"><a href="/TrobsT" class="{% if tri == 11 or tri == 22 %}active-tri{% endif %}">Observation</a></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if list_Veo_Doute|length == 0 %}
+                                <tr><td colspan="14" class="text-center">Aucun douteux</td></tr>
+                            {% else %}
+                                {% for i in list_Veo_Doute %}
+                                    <tr>
+                                        <th scope="row">{{ i.Dossier }}</th>
+                                        <td scope="row">{{ i.Immatriculation }}</td>
+                                        <td scope="row">{{ i.Date_sinistre }}</td>
+                                        <td scope="row">{{ i.Date_création }}</td>
+                                        <td>{{ i.Procédure }}</td>
+                                        <td>{{ i.Statut }}</td>
+                                        <td>{% if i.Photos_Avant %}<a href="{{ i.Photos_Avant }}" target="_blank"><i class="fas fa-camera"></i></a>{% endif %}</td>
+                                        <td><a href="{% url 'details' i.id %}">{{ i.RateFraude }}%</a></td>
+                                        <td>{{ i.Expert }}</td>
+                                        <td>{{ i.ImmatriculationAdverse }}</td>
+                                        <td>{{ i.date_obs }}</td>
+                                        <td>{{ i.statutdoute }}</td>
+                                        <td>{{ i.observation }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <br-white fixed-bottom" style="background-color: #D50000;">
+
+            </table>
+
+        </div>
     </div>
-
-  </header>
-<script type="text/javascript">document.getElementById("search").value="{{query}}"</script>
-
-
-  <div class="row"> 
-     <div class="col-sm-1" >
-</div>
-    <div class="col-sm-11" >
-      <form  class="row row-cols-lg-auto g-3 align-items-center"   action="{% url 'filtre_regT' %}" methode='GET'>
-    
-        <div class="col-sm-10">
-    
-      
-      <select class="nav-link dropdown-toggle" name=reg id=select   autocomplete=off required>
-        <option selected>Séléctionner une règle</option>
-        <option value="R1">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement confirmé frauduleux. (Vtiger)</option>
-        <option value="R2">Sinistre survenu en moins d'un mois après date début d'assurance de la partie principale.</option>
-        <option value="R3">Sinistre survenu en moins d'un mois après date début d'assurance de la partie adverse.</option>
-        <option value="R4">L'une des immatriculations (principale ou adverse) a été signalée comme "Souscription NOK".</option>
-        <option value="R5">La date d'assistance est après 20h et avant 7h du matin.</option>
-        <option value="R6">L'un des deux véhicules a deux dossiers assistance en moins de 3 mois.</option>
-        <option value="R7">L'une des immatriculations (principale ou adverse) a déjà fait l'objet d'un sinistre sur les derniers 12 mois.</option>
-        <option value="R8">L'un des deux véhicules est un cyclo.</option>
-        <option value="R9">Le sinistre est survenu en moins d'un mois avant la fin de validité du contrat ( Grantie Tierce uniquement).</option>
-        <option value="R10">Le même numéro de chassis remonte précédement avec une autre immatriculation. </option>
-        <option value="R11">Le montant du devis varie entre 18000 dhs et 20000 dhs.</option>
-        <option value="R12">Les deux immatriculations ont été toutes les deux impliquées précédement sur un autre sinistre. </option>
-        <option value="R14">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historique signalé douteux. (OMEGA)</option>
-        <option value="R13_confirme">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement confirmé frauduleux. (OMEGA) </option>
-        <option value="R12_rejete">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement avec doute rejeté. (OMEGA) </option>
-      </select></div>
-      <div class="col-sm-2">
-      <button class="btn btn-light"  style="background-color: #bfc2c2;" ><i class="fas fa-filter"></i></button></div>
-    </form>
-    </div></div>
-<br>
-
-
-
-
-
-
-<div class="row"> 
-	
-	<div class="col-sm-1" >
 </div>
 
-
-
-
-<form class="d-flex input-group w-auto" action="{% url 'filterDosT'   %}" methode='GET'>
-  <div class="form-outline">
-
-    <input type="search"  class="form-control rounded" name="search"  placeholder="Dossier ou Matricule"  />
-    <label class="form-label" for="form1">Rechercher</label>
-
-  </div>
-  <button type="submit" class="btn btn-primary">
-    <i class="fas fa-search"></i>
-  </button>
-</div>
-</form>
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
- 
-              <div class="card-body">
-    
-                <nav aria-label="Page navigation example">
-                  <ul class="pagination justify-content-end">
-                   
-                
-                 
-                    {% if list_Veo_recente.has_previous %}
-                    <li class="page-item enabled">
-                 
-                    
-                      <a class="page-link" href="?page=1"><i class="fas fa-angle-double-left"></i></a>	</li>	
-                      <li class="page-item enabled"> 
-                  <a class="page-link" href="?page={{list_Veo_recente.previous_page_number}}"> 
-                   
-                          <i class="fas fa-angle-left"></i> Précédent
-                   
-                  </a></li>
-                   {% endif %}
-                  
-                   <li class="page-item disabled">  <a class="page-link" href=#>
-                 
-                     {{ list_Veo_recente.number }} sur {{ list_Veo_recente.paginator.num_pages }}
-                   
-                     </a></li>
-                     {% if list_Veo_recente.has_next %}
-                     <li class="page-item enabled"> <a class="page-link" href="?page={{list_Veo_recente.next_page_number }}"> 
-                
-                                                  Suivant <i class="fas fa-angle-right"></i>
-                                                            </a></li>
-                                                            <li class="page-item enabled">
-                        <a  class="page-link" href="?page={{ list_Veo_recente.paginator.num_pages }}">  <i class="fas fa-angle-double-right"> </i></a>   </li>
-                   {% endif %}
-                  </ul>
-                   </center> </nav>
-
-
-                                  <div class="table-responsive"> 
-                
-                                                           <table  >
-          <thead><tr >
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"> <span class="input-group-text border-0 d-none d-lg-flex">Dossier </span><a  href="/TrDosT" >{% if tri == 1 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrDosIT">{% if tri == 12 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Matricule</span><a  href="/TrImmatT">{% if tri == 2 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a  href="/TrImmatIT">{% if tri == 13 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</i></a></span></th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"> <span class="input-group-text border-0 d-none d-lg-flex"> Date sinistre</span><a  aria-current="page" href="/TrDsinT">{% if tri == 3 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrDsinIT">{% if tri == 14 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %} </a></span> </th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Date création </span><a  aria-current="page" href="/TrDcrT">{% if tri == 4 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrDcrIT">{% if tri == 15 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Type</span><a  aria-current="page" href="/TrTypeT">{% if tri == 5 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrTypeIT">{% if tri == 16 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Statut</span><a  aria-current="page" href="/TrStatT">{% if tri == 6 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrStatIT">{% if tri == 17 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span> </th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex">Photos Avant</span></th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">RateFraude</span><a  aria-current="page" href="/TrRFT">{% if tri == 9 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a  aria-current="page" href="/TrRFIT">{% if tri == 20 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="b order-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Expert</span><a  aria-current="page" href="/TrExpT"><span>{% if tri == 7 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a  aria-current="page" href="/TrExpIT">{% if tri == 18 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span> </th>
-
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Immat_Adv </span><a  aria-current="page" href="/TrIAdvT">{% if tri == 8  %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrIAdvIT">{% if tri == 19 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="b order-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Date Traitement</span><a  aria-current="page" href="/TrdateT">{% if tri == 23 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a  aria-current="page" href="/TrdateIT">{% if tri == 24 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="b order-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Statut doute</span><a  aria-current="page" href="/TrStatDouteT">{% if tri == 10 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a  aria-current="page" href="/TrStatDouteIT">{% if tri == 21 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="b order-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Observation</span><a  aria-current="page" href="/TrobsT"><span>{% if tri == 11 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrobsIT">{% if tri == 22 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="b order-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-
-</tr>
-</thead>
-
-
-<tbody>
-
-{% if list_Veo_recente|length == 0   %}<tr> <td colspan="13" align="center">  <h6 class="mb-0 text-center">  Aucun dossier traité</h6></td>
-    </tr>
-{% else %}
-
-{% for i in list_Veo_recente %}
-<tr>
-<th scope="row">{{i.Dossier}}</th>                                                                                                               
-<td scope="row">{{i.Immatriculation}}</td>                                                                                                                                          
-<td scope="row">{{i.Date_sinistre}}</td>
-<td scope="row">{{i.Date_création}}</td>
-<td>{{i.Procédure}}</td>
-<td>{{i.Statut}}</td>
-<td>{% if i.Photos_Avant != "" and i.Photos_Avant != None %} <a href="{{i.Photos_Avant}}"role="button" target="_blank"    >    <i class="far fa-image fa-2x"></i> {% endif %}</td>
-  <td>
-    <a href="{% url 'details' i.id %}"> {{i.RateFraude}}% </a></td> 
-<td>{{i.Expert}}</td>     
-<td>{{i.ImmatriculationAdverse}}</td>           
-<td>{{i.date_obs}}</td>                                                                                                                                                         
-<td>{{i.statutdoute}}</td>
-<td> {{i.observation}}</td>	</tr>						{% endfor %}   {% endif %}</tbody>
-</table></div></div>                                                                                                                                                                           <nav aria-label="Page navigation example"><center>
-
-
-
-
-</center></nav></div>
-
-
-
-   <div class="col-sm-12">
-    <!-- <div class="col-sm-2" style=" margin-left: 120px;">
-    <form class="d-flex input-group w-auto" action="{% url 'filterDos'  %}" methode='GET'>
-    <input type="text"  name="search" class="form-control rounded" placeholder="Dossier|Immatriculation"/>
-    <span class="input-group-text border-0" id="search-addon">
-    <i class="fas fa-search"></i>
-    </span></form>
-    </div> --><div class="card-header" style=" margin-left: 50px;">
-      <h6 class="mb-0 text-center" size =22px ><Strong>Dossiers Avec doute confirmé</Strong></h6>  
-    </div>
-         
-                <div class="card-body">
-      
-                                    <div class="table-responsive" > 
-                  
-                                                             <table  >
-            <thead><tr >
-  <th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"> Dossier </span></th>
-  <th scope="col"><span class="input-group-text border-0 d-none d-lg-flex">Matricule</span></th>
-  <th scope="col"> <span class="input-group-text border-0 d-none d-lg-flex"> Date sinistre</span></th>
-  <th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"> Date création </span></th>
-  <th scope="col">
-    <span class="input-group-text border-0 d-none d-lg-flex">Type</span></th>
-  <th scope="col"><span class="input-group-text border-0 d-none d-lg-flex">
-    Statut</span></th>
-  <th scope="col"><span class="input-group-text border-0 d-none d-lg-flex">
-    Photos Avant</span></th>
-  <th scope="col"><span class="input-group-text border-0 d-none d-lg-flex">
-    Expert</span> </th>
-  
-  <th scope="col">
-    <span class="input-group-text border-0 d-none d-lg-flex">Immat_Adv </span></th>
-    <th scope="col"><span class="input-group-text border-0 d-none d-lg-flex">
-      Date Traitement</span></th>
-  <th scope="col"><span class="input-group-text border-0 d-none d-lg-flex">
-    RateFraude</span></th>
-  <th scope="col">
-    <span class="input-group-text border-0 d-none d-lg-flex">Statut doute</span></th>
-  <th scope="col"><span class="input-group-text border-0 d-none d-lg-flex">Observation</span></th>
-  
-  </tr>
-  </thead>
-  
-  {% if list_Veo_Doute|length == 0   %}<h6 class="mb-0 text-center">Aucun douteux</h6>
-      
-  {% else %}
-  
-  <tbody>
-  {% for i in list_Veo_Doute %}
-  <tr>
-  <th scope="row">{{i.Dossier}}</th>                                                                                                               
-  <td scope="row">{{i.Immatriculation}}</td>                                                                                                                                          
-  <td scope="row">{{i.Date_sinistre}}</td>
-  <td scope="row">{{i.Date_création}}</td>
-  <td>{{i.Procédure}}</td>
-  <td>{{i.Statut}}</td>
-  <td>{% if i.Photos_Avant != "" and i.Photos_Avant != None %} <a href="{{i.Photos_Avant}}"role="button" target="_blank"    >    <i class="far fa-image fa-2x"></i> {% endif %}</td>
-  <td>{{i.Expert}}</td>     
-  <td>{{i.ImmatriculationAdverse}}</td>     
-  <td>{{i.date_obs}}</td>                                                                                                                                                                                               <td>
-  <a href="{% url 'details' i.id %}"> {{i.RateFraude}}% </a></td>                                                                                                                                                                                                                                                                                                                                                                                 <td>{{i.statutdoute}}</td>
-  <td> {{i.observation}}</td>	</tr>						{% endfor %}   {% endif %}</tbody>
-  </table></div></div>                                                                                                                                                                           <nav aria-label="Page navigation example"><center>
-  
-  
-    
-
-
-
-
+<!-- JavaScript Libraries -->
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'lib/chart/chart.min.js' %}"></script>
+<script src="{% static 'lib/easing/easing.min.js' %}"></script>
+<script src="{% static 'lib/waypoints/waypoints.min.js' %}"></script>
+<script src="{% static 'lib/owlcarousel/owl.carousel.min.js' %}"></script>
+<script src="{% static 'lib/tempusdominus/js/moment.min.js' %}"></script>
+<script src="{% static 'lib/tempusdominus/js/moment-timezone.min.js' %}"></script>
+<script src="{% static 'lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js' %}"></script>
+<!-- Template Javascript -->
+<!-- <script src="{% static 'js/main.js' %}"></script> -->
 </body>
-
-
+</html>

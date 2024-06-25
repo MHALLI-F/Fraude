@@ -1,265 +1,133 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <title>VEOSMART | Login</title>
+    <title>VEOSMART | Connexion</title>
     <!-- MDB icon -->
-    <link rel="icon" href="img/mdb-favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png" />
+  
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css" />
     <!-- Google Fonts Roboto -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
     <!-- MDB -->
     <link rel="stylesheet" href="{% static 'css/mdb.min.css' %}" />
-  
-    <title>Authentification</title>
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
-    <style rel="stylesheet">
-      /* TEMPLATE STYLES */
-      
-      html,
-      body,
-      .view {
-          height: 100%;
-      }
-      /* Navigation*/
-      
-    
-      
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
 
-/* Full-width inputs */
-input[type=text], input[type=password] {
-width: 100%;
-padding: 12px 20px;
-margin: 8px 0;
-display: inline-block;
-border: 1px solid #ccc;
-box-sizing: border-box;
-}
-input[type=submit] {
-width: 10%;
-padding: 12px 20px;
-margin: 8px 0;
-color: white;
-display: inline-block;
-border: 1px solid #ccc;
-box-sizing: border-box;
-  background-color: #D50000;
-}
+        .form-container {
+            width: 450px;
+            padding: 50px;
+            margin: 5% auto;
+            background-color: #fff;
+            box-shadow: 0 12px 24px -4px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease-in-out;
+        }
 
-/* Set a style for all buttons */
-button {
-background-color: #4393CA;
-color: white;
-padding: 14px 20px;
-margin: 8px 0;
-border: none;
-cursor: pointer;
-width: 10%;
-}
+        .form-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px -4px rgba(0,0,0,0.2);
+        }
 
-/* Add a hover effect for buttons */
-button:hover {
-opacity: 0.8;
-}
+        .avatar {
+            width: 150px;
+            margin-bottom: 20px;
+            transition: transform 0.5s ease;
+        }
 
-/* Extra style for the cancel button (red) */
-.cancelbtn {
-width: auto;
-padding: 10px 18px;
-background-color: #F3866C;
-}
+        .avatar:hover {
+            transform: rotate(360deg);
+        }
 
-/* Center the avatar image inside this container */
-.imgcontainer {
-text-align: center;
-margin: 0px 0 12px 0;
-}
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-weight: 500;
+        }
 
-/* Avatar image */
-img.avatar {
-width: 7%;
-border-radius: 7%;
-}
+        .form-outline.mb-4 input[type="text"],
+        .form-outline.mb-4 input[type="password"] {
+            height: 50px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
 
-/* Add padding to containers */
-.container {
-padding: (16)px;
-}
+        .form-outline.mb-4 input[type="text"]:focus,
+        .form-outline.mb-4 input[type="password"]:focus {
+            border-color: #ced4da !important; 
+            outline: none !important; 
+            box-shadow: none !important; 
+        }
+        .login-form .btn {
+            padding: 12px 20px;
+            background-color: #ec0b0b;
+            color: #fdfdfd; 
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border: none; 
+            border-radius: 4px;
+            transition: all 0.3s ease; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50px;
+        }
 
-/* The "Forgot password" text */
-span.psw {
-float: right;
-padding-top: 16px;
-}
+        .login-form .btn:hover, .login-form .btn:focus {
+            background-color: #837e7e; 
+            transform: scale(1.05); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+        }
+        .form-check .form-check-input {
+            margin-top: 0;
+            margin-right: 10px;
+        }
 
-/* Change styles for span and cancel button on extra small screens */
-@media screen and (max-width: 300px) {
-span.psw {
-  display: block;
-  float: none;
-}
-.cancelbtn {
-  width: 100%;
-}
-}
-div.login{
-width: 60%;
-
-
-background-image: url("https://assets.truelancer.com/assets/home_v/images/prime-img.webp")
-}
-.modal {
-display: none; /* Hidden by default */
-position: fixed; /* Stay in place */
-z-index: 1; /* Sit on top */
-left: 0;
-top: 0;
-width: 100%; /* Full width */
-height: 100%; /* Full height */
-overflow: auto; /* Enable scroll if needed */
-background-color: rgb(0,0,0); /* Fallback color */
-background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-padding-top: 60px;
-}
-
-/* Modal Content/Box */
-.modal-content {
-background-color: #fefefe;
-margin: 5px auto; /* 15% from the top and centered */
-border: 1px solid #888;
-width: 80%; /* Could be more or less, depending on screen size */
-}
-
-/* The Close Button */
-.close {
-/* Position it in the top right corner outside of the modal */
-position: absolute;
-right: 25px;
-top: 0;
-color: #000;
-font-size: 35px;
-font-weight: bold;
-}
-
-/* Close button on hover */
-.close:hover,
-.close:focus {
-color: red;
-cursor: pointer;
-}
-
-/* Add Zoom Animation */
-
-
-
-
-/* Add padding to containers */
-
-/* Full-width input fields */
-input[type=text], input[type=password] {
-width: 100%;
-padding: 15px;
-margin: 5px 0 22px 0;
-display: inline-block;
-border: none;
-background: #f1f1f1;
-}
-
-input[type=text]:focus, input[type=password]:focus {
-background-color: rgb(236, 161, 161);
-outline: none;
-}
-
-/* Overwrite default styles of hr */
-
-
-
-
-
-  </style>
-
+        .remember-me-checkbox {
+            margin-bottom: 30px;
+        }
+    </style>
 </head>
 <body>
-	  {% load static %}
-	 
-
-
-
-	
-	    
-
-	    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-		      <div class="container-fluid">
-			          <button
-					        class="navbar-toggler"
-						      type="button"
-						            data-mdb-toggle="collapse"
-							          data-mdb-target="#navbarTogglerDemo01"
-								        aria-controls="navbarTogglerDemo01"
-									      aria-expanded="false"
-									            aria-label="Toggle navigation"
-										        >
-											      <i class="fas fa-bars">
-												      <br><br><br>  </i>
-											      <br><br><br>
-		      </div>
-      </div>
-	    </nav>
-	    <br><br><br>
-	<div class="container-sm"><div class="container-md"><div class="container-lg"><div class="container-xl"><div class="container-xxl">
-      
-<br>
-<br>
-<center>
-     
-      
-    <center>
-    <form method="POST">
-        {% csrf_token %}
-
-        
-    
- 
- 
- 
-   <!-- Modal Content -->
-   <form   method="post">
-     <div class="imgcontainer">
-       
-     <img
-                   src="{% static '/logo.png' %}"
-		                 height="100"
-				               alt=""
-		   loading="lazy"></div>
-    </center>
-
-     <div class="container" width="30">
-	     <div align="left"> <label for="uname"><div text-align="Left"><b>Nom d'utilisateur</b></div></label>
-       <input  class="form-control" type="text"  placeholder="Entrer Nom d'utilisateur" name="username" required >
- <br>
-       <label for="psw"><b>Mot de passe</b></label>
-       <input class="form-control" type="password" placeholder="Entrer votre Mot de passe" name="password" required>
- <br>
-    <label>
-	             <input type="checkbox" checked="checked" name="remember"> Se souvenir du nom d'utilisateur
-		            </label>
- <div align="right">    <input type="submit" class="btn btn-light"  value="se connecter"></div>
-     
-     </div>
-
-
-</center>
-     </div></div></div></div></div>
+    <div class="form-container">
+        <div class="text-center">
+            <img src="{% static '/logo.png' %}" class="avatar" alt="logo">
+        </div>
+        <form class="login-form" method="POST">
+            {% csrf_token %}
+            <h6>Nom d'utilisateur</h6>
+            <div class="form-outline mb-4">
+                <input type="text" id="username" class="form-control" placeholder="Nom d'utilisateur" name="username" required>
+                <label class="form-label" for="username"></label>
+            </div>
+            <h6>Mot de passe</h6>
+            <div class="form-outline mb-4">
+                <input type="password" id="password" class="form-control" placeholder="Mot de passe" name="password" required>
+                <label class="form-label" for="password"></label>
+            </div>
+            <div class="form-check remember-me-checkbox">
+                <input type="checkbox" class="form-check-input" id="remember" name="remember" checked>
+                <label class="form-check-label" for="remember">Se souvenir de moi</label>
+            </div>
+            <button type="submit" class="btn btn-block mb-4">Se connecter</button>
+        </form>
+    </div>
 
 </body>
 </html>
-
-
-
-
-
-

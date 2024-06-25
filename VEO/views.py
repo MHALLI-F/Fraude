@@ -1,23 +1,256 @@
 from os import lseek
 from django.shortcuts import render, get_object_or_404
 from .models import Veodata, Assistance, Bris_De_Glace, Veoservices,veotest
+
+import datetime
+from datetime import  timedelta
+from django.utils.timezone import is_aware, make_naive, get_current_timezone
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
-import datetime
+
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.core.serializers import serialize
 import json
-
+from django.db.models.functions import Cast , Coalesce
 from django.core.serializers.json import DjangoJSONEncoder
 import psycopg2
 import gzip
 from django.http import FileResponse
-
+from django.db.models import FloatField, F, Case, When, Value
 import csv
+from django.db.models import Q
+from django.db.models import FloatField, ExpressionWrapper, F, Case, When
+from django.db.models import CharField
+from django.db.models.functions import Cast
+from .models import Veoservices, Veodata, Collaborateur
+from django.db import models
+from django.db.models import DateTimeField
+from django.utils.timezone import now
+
+from .dash_app import app as dash_app  
+from django.http import JsonResponse
+from .data import get_veoservices_for_dash  
+from django.shortcuts import render
+from django.db.models import Sum
+import re
+from django.urls import reverse, resolve
+
+from django.core.mail import send_mail, BadHeaderError
+from django.conf import settings
+from django.urls import reverse
+from django.utils.html import strip_tags
+from django.template.loader import render_to_string
+from django.core.exceptions import ValidationError
+import logging
+logger = logging.getLogger(__name__)
 
 
-# nettoyage  de  numéro de  chassis
+def dashboard_data(request):
+    data = get_veoservices_for_dash()
+    user_name = f"{request.user.first_name} {request.user.last_name}".strip()
+    context = {
+        'SupUse': SupUse(request),
+        'user_name': user_name, 
+        'data': data.to_json(orient='records')  
+    }
+    return render(request, 'chart.html', context)
+
+
+    
+def chart(request):
+    dash_url = 'http://92.222.221.200:9009/dashboard/'
+    user_name = f"{request.user.first_name} {request.user.last_name}".strip()
+    context = {'dash_url': dash_url,
+               'user_name': user_name,
+                'SupUse': SupUse(request)  
+    }
+    return render(request, 'chart.html', context)
+
+
+@login_required
+def filter_veoservices_by_date_and_status(request, template_name='home.html'):
+    is_supuse = SupUse(request)
+    user_name = f"{request.user.first_name} {request.user.last_name}".strip()
+    return filter_veoservices_helper(request, template_name, is_supuse, user_name)
+
+@login_required
+def filter_veoservices_by_date_and_statusAT(request, template_name='dossieratrait.html'):
+    is_supuse = SupUse(request)
+    user_name = f"{request.user.first_name} {request.user.last_name}".strip()
+    return filter_veoservices_helper(request, template_name, is_supuse, user_name)
+
+@login_required
+def filter_veoservices_by_date_and_statusT(request, template_name='dossiertrait.html'):
+    is_supuse = SupUse(request)
+    user_name = f"{request.user.first_name} {request.user.last_name}".strip()
+    return filter_veoservices_helper(request, template_name, is_supuse, user_name)
+
+def filter_veoservices_helper(request, template_name, is_supuse, user_name):
+    queryset = Veoservices.objects.all()
+    fixed_date = request.GET.get('fixed_date')
+    statut = request.GET.get('statut')
+
+    if fixed_date and statut:
+        try:
+            parsed_date = datetime.datetime.strptime(fixed_date, '%Y-%m-%d')
+            start_str = parsed_date.strftime('%d/%m/%Y') + " 00:00"
+            end_str = (parsed_date + timedelta(days=1)).strftime('%d/%m/%Y') + " 00:00"
+            statuts_valide = [
+                "Dossier créé", "Dossier envoyé", "Rdv replanifié", "CDC envoyé au garage",
+                "Photos Avant", "Offre communiquée", "Devis envoyé par le garage",
+                "Instance Accord compagnie", "Instance Accord Expert2", "Accord à modifier",
+                "Accord à envoyer", "Devis validé", "Demande 2e accord", "Attente facture",
+                "Instance FFT/rapport", "Instance RDV Client", "Instance publication rapport",
+                "Dossier complété", "Dossier réglé", "Dossier sans suite",
+                "Dossier sans suite après expertise", "Annulé par l'expert",
+                "Dossier traité en Hifad", "Rapport rejeté", "Changement procédure",
+                "Dossier en instruction", "Dossier rejeté"
+            ]
+            if statut in statuts_valide:
+                queryset = queryset.filter(
+                    Date_création__gte=start_str,
+                    Date_création__lt=end_str,
+                    Statut=statut
+                )
+        except ValueError:
+            pass
+
+    else:
+        if fixed_date:
+            try:
+                parsed_date = datetime.datetime.strptime(fixed_date, '%Y-%m-%d')
+                start_str = parsed_date.strftime('%d/%m/%Y') + " 00:00"
+                end_str = (parsed_date + timedelta(days=1)).strftime('%d/%m/%Y') + " 00:00"
+                queryset = queryset.filter(Date_création__gte=start_str, Date_création__lt=end_str)
+            except ValueError:
+                pass
+
+        if statut:
+            statuts_valide = [
+                "Dossier créé", "Dossier envoyé", "Rdv replanifié", "CDC envoyé au garage",
+                "Photos Avant", "Offre communiquée", "Devis envoyé par le garage",
+                "Instance Accord compagnie", "Instance Accord Expert2", "Accord à modifier",
+                "Accord à envoyer", "Devis validé", "Demande 2e accord", "Attente facture",
+                "Instance FFT/rapport", "Instance RDV Client", "Instance publication rapport",
+                "Dossier complété", "Dossier réglé", "Dossier sans suite",
+                "Dossier sans suite après expertise", "Annulé par l'expert",
+                "Dossier traité en Hifad", "Rapport rejeté", "Changement procédure",
+                "Dossier en instruction", "Dossier rejeté"
+            ]
+            if statut in statuts_valide:
+                queryset = queryset.filter(Statut=statut)
+    # Exclure les enregistrements où RateFraude est None pour 'dossieratrait.html' 
+    if template_name == 'dossieratrait.html':
+        queryset = queryset.exclude(RateFraude__isnull=True)
+
+    # Exclure les dossiers avec statut doute 'Non traité' pour 'dossiertrait.html'
+    if template_name == 'dossiertrait.html':
+        queryset = queryset.exclude(statutdoute='Non traité')
+
+
+
+
+
+    paginator = Paginator(queryset, 9)
+    page = request.GET.get('page')
+    veopg = paginator.get_page(page)
+
+    context = {'list_Veo_recente': veopg, 'user_name': user_name}
+    return render(request, template_name, context)
+
+
+
+
+def send_test_email(request):
+    send_mail(
+        'Test veosmart',
+        'Ta7iyaa l a7laaa ftoomaa zin t3alam mhm ha tanjrb wahd l3iba fik .',
+        'khadija.elwazati@gmail.com',  
+        ['f.mhalli@veosmart.ma'],  
+        fail_silently=False,
+    )
+    return HttpResponse("Email envoyé avec succès!")
+
+def send_fraud_alert(service):
+    rate_fraude = service.RateFraude
+    if rate_fraude is None:
+        print(f"Service {service.id}: RateFraude est None, aucune action nécessaire.")
+        return "RateFraude est None, aucune action nécessaire."
+
+    try:
+        rate_fraude_float = float(rate_fraude)
+    except ValueError:
+        print(f"Service {service.id}: Valeur non valide pour RateFraude: {rate_fraude}")
+        return f"Valeur non valide pour RateFraude: {rate_fraude}"
+
+    
+    collaborateurs = Collaborateur.objects.all()
+    emails = [coll.email for coll in collaborateurs]
+
+    if rate_fraude_float > 50.0:
+        try:
+            link = f"https://fraude.omegasin.ma{reverse('details', kwargs={'Dossier': service.id})}"
+            print(f"Service {service.id}: Lien d'alerte email généré : {link}")
+        except Exception as e:
+            print(f"Service {service.id}: Erreur lors de la génération du lien : {e}")
+            return f"Erreur lors de la génération du lien : {e}"
+
+        context = {
+            'dossier_reference': service.Dossier,
+            'immatriculation': service.Immatriculation,
+            'date_sinistre': service.Date_sinistre,
+            'rate_fraude': rate_fraude_float,
+            'link': link
+        }
+
+        subject = f"Alerte de Fraude Élevée pour le Dossier {context['dossier_reference']}"
+
+        html_message = render_to_string('fraud_alert_email.html', context)
+        plain_message = strip_tags(html_message)
+        
+        try:
+            send_mail(
+                subject,
+                plain_message,
+                settings.EMAIL_HOST_USER,
+                emails,  
+                html_message=html_message,
+                fail_silently=False,
+            )
+            print(f"Service {service.id}: Notification envoyée avec succès aux emails : {', '.join(emails)}")
+            return f"Notification envoyée avec succès aux emails : {', '.join(emails)}"
+        except Exception as e:
+            print(f"Service {service.id}: Erreur lors de l'envoi de l'email : {e}")
+            return f"Erreur lors de l'envoi de l'email : {e}"
+    else:
+        print(f"Service {service.id}: Aucune notification nécessaire.")
+        return "Aucune notification nécessaire."
+
+
+
+def test_fraud_alert(request):
+    veoservices = Veoservices.objects.all()
+    
+    for service in veoservices:
+        result = send_fraud_alert(service)
+        print(result)  
+
+    return HttpResponse("Tous les enregistrements traités")
+
+
+
+
+
+
+
+#def check_and_send_fraud_alert(request, veoservice_id):
+    #veoservice = get_object_or_404(Veoservices, id=veoservice_id)
+    #if veoservice.RateFraude > 50.0:
+     #   return send_fraud_alert(request, veoservice_id)
+    #return HttpResponse("Mise à jour effectuée et aucune notification envoyée.")
+# nettoyage  de  numéro de  chassis 
 def net_numch(a):
     a=a.replace(' ','').replace('-','').replace('_','').replace(',','').replace('.','').replace('*','')
     return a
@@ -123,52 +356,143 @@ def str_to_float(stri):
         stri=float(stri)
     return stri
 
-
+#changement fonct
 def extraction_traitement(request):
-    conn = psycopg2.connect(host='0.0.0.0', port=5432, dbname='veo' ,user='postgres', password='MDPveosmart@123')
-
-    cur = conn.cursor()
-
-    # export to csv
-    fid=open('/home/extraction/dossierstraités.csv','w')
-    sql = 'COPY (SELECT * FROM public."VEO_veoservices"  ) TO STDOUT  WITH (FORMAT CSV, HEADER, ENCODING "UTF-8");'
-    cur.copy_expert(sql, fid)
-    fid.close()
-    fd = open('/home/extraction/dossierstraités.csv', 'rb')
-    return FileResponse(fd, as_attachment=True, filename='Extraction_dossierstraités.csv')
-
-
+    try:
+        with closing(psycopg2.connect(host='0.0.0.0', port=5432, dbname='veo', user='postgres', password='MDPveosmart@123')) as conn:
+            with conn.cursor() as cur:
+                file_path = '/home/extraction/dossierstraités.csv'
+                with open(file_path, 'w', newline='') as fid:
+                    sql = 'COPY (SELECT * FROM public."VEO_veoservices") TO STDOUT WITH (FORMAT CSV, HEADER, ENCODING "UTF-8");'
+                    cur.copy_expert(sql, fid)
+                with open(file_path, 'rb') as fd:
+                    return FileResponse(fd, as_attachment=True, filename='Extraction_dossierstraités.csv')
+    except Exception as e:
+        return HttpResponse(f"An error occurred: {str(e)}", status=500)
 
 
+#cette fonc prend 22s tahiya l FZ ila qriti code sifti lia wslat ta7iya 
+#@login_required
+#def inis(request):
+    #Today_DateVeo = datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
+    #Today_DateVeo = datetime.datetime.strptime(Today_DateVeo, '%d/%m/%Y %H:%M')
+    #NBDAT = nbrDAT()
+    #list_Veo_recente = []
+    #list_Veoservices = Veoservices.objects.all()
+
+    #for veo in list_Veoservices:
+        #if veo.Date_création:
+            #veo.Date_création = datetime.datetime.strptime(veo.Date_création, '%d/%m/%Y %H:%M')
+            #veo.RateFraude = str_to_float(veo.RateFraude)
+        #if veo.Statut != "Changement procédure" and veo.RateFraude == 60.0:
+            #list_Veo_recente.append(veo)
+
+    # Trier la liste par Date_création en ordre décroissant
+    #list_Veo_recente.sort(key=lambda r: r.Date_création, reverse=True)
+
+    #paginator = Paginator(list_Veo_recente, 9)
+    #page = request.GET.get('page')
+    #veopg = paginator.get_page(page)
+
+    #context = {"SupUse": SupUse(request), "list_Veo_recente": veopg, "NBDossiers": NBDAT}
+    #return render(request, "home.html", context)
+
+
+#cette fonc me donne en temps 9s tahiya l FZ ila qriti code sifti lia wslat ta7iya 
+#@login_required
+#def inis(request):
+    #today_date_veo = datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
+    #today_date_veo = datetime.datetime.strptime(today_date_veo, '%d/%m/%Y %H:%M')
+    #nb_dat = nbrDAT()
+
+    #def safe_float(value):
+        #try:
+            #return float(value)
+        #except (ValueError, TypeError):
+            #return None
+
+    #list_veoservices = Veoservices.objects.all()
+    #filtered_veoservices = []
+    #for veo in list_veoservices:
+        # Convertir RateFraude en float, gérer les valeurs non numériques
+        #rate_fraude_float = safe_float(veo.RateFraude)
+        #if rate_fraude_float is not None:  
+            #veo.rate_fraude_float = rate_fraude_float
+            #filtered_veoservices.append(veo)
+
+    # Filtrer pour obtenir les entrées avec un taux de fraude de 60.0 et un statut changeement de procedure 
+    #list_veo_recente = [veo for veo in filtered_veoservices if veo.rate_fraude_float == 60.0 and veo.Statut != "Changement procédure"]
+
+    #list_veo_recente.sort(key=lambda r: r.Date_création, reverse=True)
+    #paginator = Paginator(list_veo_recente, 9)
+    #page = request.GET.get('page')
+    #veopg = paginator.get_page(page)
+
+    #context = {
+        #"SupUse": SupUse(request),
+        #"list_Veo_recente": veopg,
+        #"NBDossiers": nb_dat
+    #}
+    #return render(request, "home.html", context)
 
 @login_required
 def inis(request):
-    Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
-    Today_DateVeo=datetime.datetime.strptime(Today_DateVeo, '%d/%m/%Y %H:%M')
-   
-    NBDAT=nbrDAT()
-    list_Veo_recente=[]
-    NBD=0
-    list_Veo_recente = Veoservices.objects.exclude(Date_création__isnull=True,Statut="Changement procédure",RateFraude__in=[100]).annotate(RateFraude_float=Cast('RateFraude', FloatField())).order_by('-Date_création')
-#list_Veo_recente = Veoservices.objects.filter(Date_création__isnull=False,Statut="Changement procédure",RateFraude__in=[100,30]).order_by('-Date_création')
-    #list_Veoservices=Veoservices.objects.all()
-    Rate=0
+    current_url = resolve(request.path_info).url_name
+    display_data = (current_url == 'inis')  
 
-  #  for i in list_Veoservices:
-   #     if i.Date_création!=None:
-    #        i.Date_création=datetime.datetime.strptime(i.Date_création, '%d/%m/%Y %H:%M')
-     #       i.RateFraude = str_to_float(i.RateFraude)
-   #     if (i.Statut!= "Changement procédure") and (i.RateFraude in [100]):
-            
-    #        list_Veo_recente.append(i)
-            
-#    list_Veo_recente.sort(key=lambda r: r.Date_création,reverse=True)
-    paginator = Paginator(list_Veo_recente,9)
-    page = request.GET.get('page')
-    veopg = paginator.get_page(page)
-    list_Veo_recente.sort(key=lambda r: r.Date_création,reverse=True)
-    context={"SupUse":SupUse(request),"list_Veo_recente": veopg,"NBDossiers":NBDAT}
-    return render(request,"home.html",context)
+    #today_date_veo = datetime.today()
+    nbdat = nbrDAT()  
+    user_name = f"{request.user.first_name} {request.user.last_name}".strip()
+
+    total_a_traiter = total_traite = total_doute_confirme = moyenne_doute = 0
+    veopg = None  
+
+    if display_data:
+        total_a_traiter = Veoservices.objects.filter(statutdoute="Non traité").count()
+        total_traite = Veoservices.objects.filter(statutdoute='Doute confirmé').count() + Veoservices.objects.filter(statutdoute='Doute rejeté').count()
+        total_doute_confirme = Veoservices.objects.filter(statutdoute='Doute confirmé').count()
+        total_dossiers = Veoservices.objects.count()
+
+        if total_dossiers > 0:
+            rate_fraude_values = Veoservices.objects.values_list('RateFraude', flat=True)
+            valid_rate_fraude_values = []
+            for value in rate_fraude_values:
+                if value is not None:
+                    
+                    clean_value = value.strip().strip("'\"")
+                    if re.match(r'^\d*\.?\d+$', clean_value):
+                        valid_rate_fraude_values.append(float(clean_value))
+            if valid_rate_fraude_values:
+                total_rate_fraude = sum(valid_rate_fraude_values)
+                moyenne_doute = total_rate_fraude / len(valid_rate_fraude_values)
+        else:
+            moyenne_doute = 0
+
+        list_veo_recente = Veoservices.objects.filter(
+            Date_création__isnull=False,
+            RateFraude__regex=r'^\d*\.?\d+$'
+        ).exclude(
+            Statut="Changement de procédure"
+        ).order_by('-Date_création')
+
+        paginator = Paginator(list_veo_recente, 9)
+        page = request.GET.get('page')
+        veopg = paginator.get_page(page)
+
+    context = {
+         
+        "list_Veo_recente": veopg,
+        "NBDossiers": total_dossiers,  
+        "total_a_traiter": total_a_traiter,
+        "total_traite": total_traite,
+        "total_doute_confirme": total_doute_confirme,
+        "moyenne_doute": moyenne_doute,
+        "display_data": display_data,
+        'user_name': user_name,
+        'SupUse': SupUse(request)
+    }
+
+    return render(request, "home.html", context)
 
 @login_required
 def details(request, Dossier):
@@ -225,25 +549,74 @@ def details(request, Dossier):
     R13_Dos=ls[1]
     
     R14 =Veo.Reg14()
+    ls =Veo.Reg15()
+    R15=ls[0]
+    R15_CN=ls[1]
+    ls =Veo.Reg16()
+    R16=ls[0]
+    R16_Dos=ls[1]
+    ls =Veo.Reg17()
+    R17=ls[0]
+    R17_Int=ls[1]
     # Vérifier si c'est superuser
     if request.user.is_superuser:
         SupUse = True
     else:
         SupUse = False
-    context={"SupUse":SupUse, "NBDT":NBDT,"NBDossiers":NBD,"Veo":Veo,"Rate":Rate ,"R1": R1,"R1_P": R1_P, "R1_A":R1_A, "R2":R2, "R2_DDA":R2_DDA, "R2_DS":R2_DS,"R3":R3, "R3_DDA":R3_DDA, "R3_DS":R3_DS, "R4":R4, "R4_SP":R4_SP, "R4_SA":R4_SA,"R5":R5 ,"R5_Assis":R5_Assis ,"R6":R6,"R6_Assis1":R6_Assis1 ,"R6_Assis2":R6_Assis2,"R7":R7,"R7_P":R7_P,"R7_A":R7_A, "R9_DFP":R9_DFP, "R9_DS":R9_DS, "R9":R9,"R8":R8,"R11":R11, "R10_Dos":R10_Dos,"R10":R10 , "R12_Dos":R12_Dos,"R12":R12 , "R13_Dos":R13_Dos,"R13":R13, "R14":R14}
+    context={"SupUse":SupUse, "NBDT":NBDT,"NBDossiers":NBD,"Veo":Veo,"Rate":Rate ,"R1": R1,"R1_P": R1_P, "R1_A":R1_A, "R2":R2, "R2_DDA":R2_DDA, "R2_DS":R2_DS,"R3":R3, "R3_DDA":R3_DDA, "R3_DS":R3_DS, "R4":R4, "R4_SP":R4_SP, "R4_SA":R4_SA,"R5":R5 ,"R5_Assis":R5_Assis ,"R6":R6,"R6_Assis1":R6_Assis1 ,"R6_Assis2":R6_Assis2,"R7":R7,"R7_P":R7_P,"R7_A":R7_A, "R9_DFP":R9_DFP, "R9_DS":R9_DS, "R9":R9,"R8":R8,"R11":R11, "R10_Dos":R10_Dos,"R10":R10 , "R12_Dos":R12_Dos,"R12":R12 , "R13_Dos":R13_Dos,"R13":R13, "R14":R14, "R15":R15, "R16":R16, "R17":R17,"R15_CN":R15_CN,"R16_Dos":R16_Dos,"R17_Int":R17_Int}
 
     return render(request,"detail.html",context)
+#def nbrDAT():
+    #NBD=0
+    #Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
+    #Today_DateVeo=datetime.datetime.strptime(Today_DateVeo, '%d/%m/%Y %H:%M')
+    #today_date_veo = datetime.datetime.today()
+    #five_days_ago = today_date_veo - datetime.timedelta(days=5)
+
+    # Utilisation d'une requête filtrée pour réduire le nombre d'objets chargés en mémoire
+    #list_veoservices = Veoservices.objects.annotate(
+        #string_rate_fraude=Cast('RateFraude', output_field=CharField())
+    #).filter(
+        #Date_création__isnull=False,
+        #Date_création__gte=five_days_ago.strftime('%d/%m/%Y %H:%M')
+    #).filter(
+        #Q(
+            #(Q(statutdoute="Non traité") & ~Q(Statut="Changement de procédure") & Q(string_rate_fraude__in=['0', '0.0', '5.0', '10.0'])) |
+            #(Q(statutdoute="Attente photos Avant") & ~Q(Photos_Avant="") & Q(Photos_Avant__isnull=False) & ~Q(Statut="Changement de procédure") & Q(string_rate_fraude__in=['0', '0.0', '5.0', '10.0']))
+        #)
+    #)
+
+    # Comptage direct du nombre d'éléments
+    #nbd = list_veoservices.count()
+    #return nbd
+
 def nbrDAT():
-    NBD=0
-    Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
-    Today_DateVeo=datetime.datetime.strptime(Today_DateVeo, '%d/%m/%Y %H:%M')
-    list_Veoservices=Veoservices.objects.all()
-    for i in list_Veoservices:
-        if i.Date_création!=None:
-            Date_création=datetime.datetime.strptime(i.Date_création, '%d/%m/%Y %H:%M')
-            if (((Today_DateVeo-Date_création).days<=5) and i.statutdoute=="Non traité" and i.Statut!="Changement de procédure" and i.RateFraude not in [0,'0.0',None,'5.0','10.0']) or (i.statutdoute=="Attente photos Avant" and i.Photos_Avant!="" and i.Photos_Avant!=None and i.Statut!="Changement de procédure" and i.RateFraude not in [0,'0.0',None,'5.0','10.0']) :
-                NBD=NBD+1
-    return NBD
+    # Calculer la date de "il y a 5 jours"
+    five_days_ago = now() - timedelta(days=5)
+
+
+    # Convertir RateFraude en Float pour les comparaisons numériques
+    list_Veoservices = Veoservices.objects.annotate(
+        rate_fraude_float=Cast('RateFraude', FloatField())
+    ).filter(
+        Date_création__isnull=False,
+        Date_création__gte=five_days_ago,
+        statutdoute="Non traité"
+    ).exclude(
+        Statut="Changement de procédure",
+        rate_fraude_float__in=[0.0, 5.0, 10.0]
+    )
+
+    count = list_Veoservices.filter(
+        statutdoute="Attente photos Avant",
+        Photos_Avant__isnull=False
+    ).exclude(
+        Photos_Avant="",
+        Statut="Changement de procédure",
+        rate_fraude_float__in=[0.0, 5.0, 10.0]
+    ).count()
+
+    return count
 
 def nbrDT():
     list_Veoservices=Veoservices.objects.all()
@@ -257,40 +630,137 @@ def nbrDT():
                 NBD=NBD+1
     return NBD
 
-def DosAff():
-    Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
-    Today_DateVeo=datetime.datetime.strptime(Today_DateVeo,'%d/%m/%Y %H:%M')
-    list_Veo_recente=[]
-    list_Veoservices=Veoservices.objects.all()
+#def DosAff():
+    #Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
+    #Today_DateVeo=datetime.datetime.strptime(Today_DateVeo,'%d/%m/%Y %H:%M')
+    #fifty_days_ago = datetime.datetime.today() - datetime.timedelta(days=50)
+    
+    # Filtrer les Veoservices créés dans les 50 derniers jours, sans "Changement de procédure"
+    #list_Veo_recente = Veoservices.objects.annotate(
+        #safe_rate_fraude=Case(
+            #When(RateFraude__regex=r'^\d*\.?\d+$', then='RateFraude'),
+            #default=Value(None),
+            #output_field=FloatField()
+        #)
+    #).filter(
+        #Date_création__gte=fifty_days_ago,
+        #Date_création__isnull=False
+    #).exclude(
+        #Statut="Changement de procédure"
+    #)
 
-    for i in list_Veoservices:
-        if i.Date_création!=None:
-            Date_création=datetime.datetime.strptime(i.Date_création,'%d/%m/%Y %H:%M')
-            if ((((Today_DateVeo-Date_création).days<=50) and (i.Statut!= "Changement procédure")) or (i.statutdoute=="Attente photos Avant" and i.Photos_Avant!="" and i.Photos_Avant!=None and i.Statut!="Changement de procédure" ) )and i.RateFraude not in [0,"0.0","","'0.0'",0.0,None]:
-                list_Veo_recente.append(i)
-    return  list_Veo_recente
+    # Filtrer pour "Attente photos Avant"
+    #list_Veo_recente |= Veoservices.objects.annotate(
+        #safe_rate_fraude=Case(
+            #When(RateFraude__regex=r'^\d*\.?\d+$', then='RateFraude'),
+            #default=Value(None),
+            #output_field=FloatField()
+        #)
+    #).filter(
+        #Date_création__gte=fifty_days_ago,
+        #Date_création__isnull=False,
+        #statutdoute="Attente photos Avant",
+        #Photos_Avant__isnull=False
+    #).exclude(
+        #Photos_Avant="",
+        #Statut="Changement de procédure"
+    #)
+
+    #return list(list_Veo_recente)
+
+def DosAff():
+    # Calculer la date d'il y a 50 jours
+    fifty_days_ago = now() - timedelta(days=50)
+
+    # Filtrer les enregistrements récents et exclure certains statuts et valeurs non numériques de RateFraude
+    list_Veo_recente = Veoservices.objects.filter(
+        Date_création__gte=fifty_days_ago,
+        Date_création__isnull=False
+    ).exclude(
+        Statut="Changement de procédure"
+    ).annotate(
+        safe_rate_fraude=Cast('RateFraude', FloatField())
+    ).filter(
+        Q(statutdoute="Non traité") |
+        (Q(statutdoute="Attente photos Avant") & ~Q(Photos_Avant="") & Q(Photos_Avant__isnull=False))
+    ).exclude(
+        safe_rate_fraude__in=[0.0, '0.0', None]
+    )
+
+    return list(list_Veo_recente)
+
+#def DosAT():
+    #Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
+    #Today_DateVeo=datetime.datetime.strptime(Today_DateVeo,'%d/%m/%Y %H:%M')
+    #twenty_five_days_ago = timezone.now() - datetime.timedelta(days=25)
+
+    # Filtrer les Veoservices créés dans les 25 derniers jours, sans "Changement de procédure"
+    #list_Veo_recente = Veoservices.objects.annotate(
+        #safe_rate_fraude=Case(
+            #When(RateFraude__regex=r'^\d*\.?\d+$', then='RateFraude'),
+            #default=Value(None),
+            #output_field=FloatField()
+        #)
+    #).filter(
+        #Date_création__gte=twenty_five_days_ago,
+        #Date_création__isnull=False
+    #).exclude(
+        #Statut="Changement de procédure"
+    #)
+
+    # Ajouter un filtre pour "Attente photos Avant" 
+    #list_Veo_recente |= Veoservices.objects.annotate(
+        #safe_rate_fraude=Case(
+            #When(RateFraude__regex=r'^\d*\.?\d+$', then='RateFraude'),
+            #default=Value(None),
+            #output_field=FloatField()
+        #)
+    #).filter(
+        #Date_création__gte=twenty_five_days_ago,
+        #Date_création__isnull=False,
+        #statutdoute="Attente photos Avant",
+        #Photos_Avant__isnull=False
+    #).exclude(
+        #Photos_Avant="",
+        #Statut="Changement de procédure"
+    #)
+
+    #return list(list_Veo_recente)
+def safe_convert_to_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None  
+
 
 def DosAT():
-    Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
-    Today_DateVeo=datetime.datetime.strptime(Today_DateVeo,'%d/%m/%Y %H:%M')
-    list_Veo_recente=[]
-    list_Veoservices=Veoservices.objects.all()
+    twenty_five_days_ago = now() - timedelta(days=25)
+    list_Veo_recente = Veoservices.objects.filter(
+        Date_création__gte=twenty_five_days_ago,
+        Date_création__isnull=False
+    ).exclude(
+        Statut="Changement de procédure"
+    ).filter(
+        Q(statutdoute="Non traité") |
+        (Q(statutdoute="Attente photos Avant") & ~Q(Photos_Avant="") & Q(Photos_Avant__isnull=False))
+    ).annotate(
+        numeric_rate_fraude=Cast('RateFraude', output_field=FloatField(default=None, null=True))
+    ).exclude(
+        numeric_rate_fraude__in=[0, 0.0, None]  
+    )
 
-    for i in list_Veoservices:
-        if i.Date_création!=None:
-            Date_création=datetime.datetime.strptime(i.Date_création,'%d/%m/%Y %H:%M')
-            if ((((Today_DateVeo-Date_création).days<=25) and (i.Statut!= "Changement procédure")) or (i.statutdoute=="Attente photos Avant" and i.Photos_Avant!="" and i.Photos_Avant!=None and i.Statut!="Changement de procédure" ) )and i.RateFraude not in [0,"0.0","","'0.0'",0.0,0,'0.0',None,'5.0','10.0']:
-                list_Veo_recente.append(i)
-    return  list_Veo_recente
+    
+    results = list(list_Veo_recente)
+    results = [item for item in results if safe_convert_to_float(item.RateFraude) not in [0, 0.0, 5.0, 10.0, None]]
+    
+    return results
 
 def DosAffdout():
-    list_Veo_recente =[]
-    list_Veoservices = Veoservices.objects.all()
-    NBD=nbrDAT()
-    for i in list_Veoservices:
-        if i.statutdoute == "Doute confirmé":
-            list_Veo_recente.append(i)
-    return  list_Veo_recente
+    # Filtrer les objets où le statutdoute est "Doute confirmé"
+    list_Veo_recente = Veoservices.objects.filter(statutdoute="Doute confirmé")
+
+    return list(list_Veo_recente)
+
 def filtre(request):
     id=request.GET.get('filtre')
     list_Veo_recente=DosAff()
@@ -310,6 +780,7 @@ def filtre(request):
     #veopg.sort(key=lambda r: r.RateFraude,reverse=True)
     context={"SupUse":SupUse(request),"NBDT":NBDT,"NBDossiers":nbr,"list_Veo_recente": list_Veo_recente}
     return render(request,"home.html",context)
+    
     # Vérifier  si  l'utilisateur  connecter  est  un  admin
 def SupUse(request):
     if request.user.is_superuser:
@@ -968,6 +1439,7 @@ def TrStatT(request):
     veoD = paginator.get_page(pageD)
     context={"SupUse":SupUse(request),"list_Veo_recente": veopg,"list_Veo_Doute": DosAffdout(),"NBDossiers":NBD,"NBDT":NBDT, "tri":tri}
     return render(request,"dossiertrait.html",context)
+     
 def TrExpT(request):
     list_Veo_recente=DosTAff()
     NBD=nbrDAT()
@@ -1385,159 +1857,184 @@ def TrdateT(request):
     return render(request,"dossiertrait.html",context)
 @login_required
 def filterDos(request):
-    list_Veo_recente=[]
-    Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
-    Today_DateVeo=datetime.datetime.strptime(Today_DateVeo,'%d/%m/%Y %H:%M')
-    NBD=nbrDAT()
-    NBDT=nbrDT()
-    if request.method=='GET':
-        query=request.GET.get('search')
-    liste2=list(Veoservices.objects.filter(Dossier__icontains=query))
-    liste1=list(Veoservices.objects.filter(Immatriculation__icontains=query))
-    if liste1==None:
-        liste=liste2
-    elif liste2==None:
-        liste=liste1
-    else:
-        liste=liste1+liste2
-    for i in liste:
-        if i.Date_création!=None:
-            Date_création=datetime.datetime.strptime(i.Date_création,'%d/%m/%Y %H:%M')
-            if ((Today_DateVeo-Date_création).days<=100) and i.RateFraude not in [0,'0.0',None,'5.0','10.0','15.0'] and i not in list_Veo_recente:
-                list_Veo_recente.append(i)
-                i.RateFraude=str_to_float(i.RateFraude)
-    list_Veo_recente.sort(key=lambda r: r.RateFraude,reverse=True)
-    paginator = Paginator(list_Veo_recente,9)
+    today = datetime.datetime.now()  
+    if is_aware(today):
+        today = make_naive(today, get_current_timezone())
+
+    NBD = nbrDAT()
+    NBDT = nbrDT()
+    query = request.GET.get('search', '')
+
+    liste1 = Veoservices.objects.filter(Dossier__icontains=query)
+    liste2 = Veoservices.objects.filter(Immatriculation__icontains=query)
+    liste = liste1 | liste2
+
+    list_Veo_recente = [
+        i for i in liste if i.Date_création and
+        (today - datetime.datetime.strptime(i.Date_création, '%d/%m/%Y %H:%M')).days <= 5 and
+        i.RateFraude not in [0, '0.0', None, '5.0', '10.0', '15.0']
+    ]
+
+    for item in list_Veo_recente:
+        item.RateFraude = str_to_float(item.RateFraude)
+
+    list_Veo_recente.sort(key=lambda r: r.RateFraude if r.RateFraude is not None else 0, reverse=True)
+    paginator = Paginator(list_Veo_recente, 9)
     page = request.GET.get('page')
     veopg = paginator.get_page(page)
 
-    context={"SupUse":SupUse(request),"list_Veo_recente": veopg,"NBDossiers":NBD,"NBDT":NBDT}
-    return render(request,"home.html",context)
+    context = {
+        "SupUse": SupUse(request),
+        "list_Veo_recente": veopg,
+        "NBDossiers": NBD,
+        "NBDT": NBDT
+    }
+    return render(request, "home.html", context)
 @login_required
 def filterDosAT(request):
-    list_Veo_recente=[]
-    Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
-    Today_DateVeo=datetime.datetime.strptime(Today_DateVeo,'%d/%m/%Y %H:%M')
-    NBD=nbrDAT()
-    NBDT=nbrDT()
-    if request.method=='GET':
-        query=request.GET.get('search')
-        liste2=list(Veoservices.objects.filter(Dossier__icontains=query))
-        liste1=list(Veoservices.objects.filter(Immatriculation__icontains=query))
-        if liste1==None:
-            liste=liste2
-        elif liste2==None:
-            liste=liste1
-        else:
-            liste=liste1+liste2
-        for i in liste:
-            if i.Date_création!=None:
-                Date_création=datetime.datetime.strptime(i.Date_création,'%d/%m/%Y %H:%M')
-                if ((Today_DateVeo-Date_création).days<=100):
-                    if (i.statutdoute=="Non traité" and i.Statut!="Changement de procédure" and i.RateFraude not in [0,'0.0',None,'5.0','10.0']) or (i.statutdoute=="Attente photos Avant" and i.Photos_Avant!="" and i.Photos_Avant!=None and i.Statut!="Changement de procédure" and i.RateFraude not in [0,'0.0',None,'5.0','10.0']) and i not in list_Veo_recente:
-                        list_Veo_recente.append(i)
-                        i.RateFraude=str_to_float(i.RateFraude)
-    list_Veo_recente.sort(key=lambda r: r.RateFraude,reverse=True)
-    paginator = Paginator(list_Veo_recente,9)
+    Today_DateVeo = datetime.datetime.today()
+    NBD = nbrDAT()
+    NBDT = nbrDT()
+
+    query = request.GET.get('search', '')
+    if query:
+      
+        liste = Veoservices.objects.filter(
+            Q(Dossier__icontains=query) | 
+            Q(Immatriculation__icontains=query)
+        )
+        liste = [i for i in liste if i.Date_création and (Today_DateVeo - datetime.datetime.strptime(i.Date_création, '%d/%m/%Y %H:%M')).days <= 5 and i.statutdoute in ["Non traité", "Attente photos Avant"] and i.Statut != "Changement de procédure" and i.RateFraude not in [0, '0.0', None, '5.0', '10.0']]
+    else:
+        liste = []
+
+    for item in liste:
+        item.RateFraude = str_to_float(item.RateFraude)
+
+    liste.sort(key=lambda r: r.RateFraude, reverse=True)
+    paginator = Paginator(liste, 9)
     page = request.GET.get('page')
     veopg = paginator.get_page(page)
-    context={"SupUse":SupUse(request),"list_Veo_recente": veopg,"NBDossiers":NBD,"NBDT":NBDT}
-    return render(request,"dossieratrait.html",context)
+
+    context = {
+        "SupUse": SupUse(request),
+        "list_Veo_recente": veopg,
+        "NBDossiers": NBD,
+        "NBDT": NBDT
+    }
+    return render(request, "dossieratrait.html", context)
 @login_required
 def filterDosT(request):
-    list_Veo_recente=[]
-    NBD=nbrDAT()
-    NBDT=nbrDT()
-    Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
-    Today_DateVeo=datetime.datetime.strptime(Today_DateVeo,'%d/%m/%Y %H:%M')
-    if request.method=='GET':
-        query=request.GET.get('search')
-        liste2=list(Veoservices.objects.filter(Dossier__icontains=query))
-        liste1=list(Veoservices.objects.filter(Immatriculation__icontains=query))
-        if liste1==None:
-            liste=liste2
-        elif liste2==None:
-            liste=liste1
-        else:
-            liste=liste1+liste2
-        for i in liste:
-            if i.Date_création!=None:
-                Date_création=datetime.datetime.strptime(i.Date_création,'%d/%m/%Y %H:%M')
-                if ((Today_DateVeo-Date_création).days<=100):
-                    if (i.statutdoute=="Doute confirmé" or i.statutdoute=="Doute rejeté") and i.Statut!="Changement de procédure" and  i.Statut!="Dossier sans suite" and i.RateFraude not in [0,'0.0',None,'5.0','10.0'] and i not in list_Veo_recente:
-                        list_Veo_recente.append(i)
-                        i.RateFraude=str_to_float(i.RateFraude)
-    list_Veo_recente.sort(key=lambda r: r.RateFraude,reverse=True)
-    paginator = Paginator(list_Veo_recente,9)
+    today = datetime.datetime.now()  
+    query = request.GET.get('search', '')
+    NBD = nbrDAT()  
+    NBDT = nbrDT()  
+
+    dossiers = Veoservices.objects.filter(
+        Q(Dossier__icontains=query) | Q(Immatriculation__icontains=query),
+        Date_création__isnull=False
+    )
+
+    list_Veo_recente = [
+        i for i in dossiers
+        if i.Date_création and datetime.datetime.strptime(i.Date_création, '%d/%m/%Y %H:%M') <= today - timedelta(days=5) and
+           i.statutdoute in ["Doute confirmé", "Doute rejeté"] and
+           i.Statut not in ["Changement de procédure", "Dossier sans suite"] and
+           i.RateFraude not in [0, '0.0', None, '5.0', '10.0']
+    ]
+
+    list_Veo_recente.sort(key=lambda r: float(r.RateFraude) if r.RateFraude else 0, reverse=True)
+    paginator = Paginator(list_Veo_recente, 9)
+    veopg = paginator.get_page(request.GET.get('page'))
+
+    list_Veo_Doute = dossiers.filter(statutdoute="Doute confirmé").order_by('-RateFraude')
+    paginatorD = Paginator(list_Veo_Doute, 9)
+    veoD = paginatorD.get_page(request.GET.get('pageD'))
+
+    context = {
+        "SupUse": SupUse(request), 
+        "list_Veo_recente": veopg,
+        "list_Veo_Doute": veoD,
+        "NBDossiers": NBD,
+        "NBDT": NBDT
+    }
+    return render(request, "dossiertrait.html", context)
+
+@login_required
+def dossierstrait(request):
+    NBD = nbrDAT()
+    NBDT = nbrDT()
+    user_name = f"{request.user.first_name} {request.user.last_name}".strip()
+
+    list_Veo_recente = Veoservices.objects.filter(
+        Q(statutdoute__in=["Doute confirmé", "Doute rejeté"]) &
+        ~Q(Statut__in=["Changement de procédure", "Dossier sans suite"])
+    )
+
+    
+    list_Veo_recente = [veo for veo in list_Veo_recente if veo.RateFraude not in [None, '']]
+    list_Veo_recente.sort(key=lambda x: float(x.RateFraude), reverse=True)
+
+    paginator = Paginator(list_Veo_recente, 7)
     page = request.GET.get('page')
     veopg = paginator.get_page(page)
 
     
-    Veoservice=Veoservices.objects.all()
-    list_Veo_Doute =[]
-    for i in Veoservice:
-        if i.statutdoute == "Doute confirmé":
-            list_Veo_Doute.append(i)
-    list_Veo_Doute.sort(key=lambda r: r.RateFraude,reverse=True)
-    paginatorD = Paginator(list_Veo_Doute,9)
-    pageD = request.GET.get('pageD')
-    veoD = paginator.get_page(pageD)
-    context={"SupUse":SupUse(request),"list_Veo_recente": veopg,"list_Veo_Doute": DosAffdout(),"NBDossiers":NBD,"NBDT":NBDT}
-    return render(request,"dossiertrait.html",context)
+    list_Veo_Doute = Veoservices.objects.filter(
+        statutdoute="Doute confirmé"
+    )
 
-@login_required
-def dossierstrait(request):
-    NBD=nbrDAT()
-    NBDT=nbrDT()
-    list_Veo_recente=[]
-    list_Veoservices=DosTAff()
-    Veoservice=Veoservices.objects.all()
-    for i in list_Veoservices:
-        if (i.statutdoute=="Doute confirmé" or i.statutdoute=="Doute rejeté") and i.Statut!="Changement de procédure" and  i.Statut!="Dossier sans suite" :
-            i.RateFraude = str_to_float(i.RateFraude)
-            list_Veo_recente.append(i)
+    list_Veo_Doute = [veo for veo in list_Veo_Doute if veo.RateFraude not in [None, '']]
+    list_Veo_Doute.sort(key=lambda x: float(x.RateFraude), reverse=True)
 
-    list_Veo_recente.sort(key=lambda r: r.RateFraude,reverse=True)
-    paginator = Paginator(list_Veo_recente,9)
-    page = request.GET.get('page')
-    veopg = paginator.get_page(page)
+    context = {
+        "SupUse": SupUse(request),  
+        "list_Veo_recente": veopg,
+        "list_Veo_Doute": list_Veo_Doute,
+        "NBDossiers": NBD,
+        'user_name': user_name,
+        "NBDT": NBDT
+    }
 
-    list_Veo_Doute =[]
-    for i in Veoservice:
-        if i.statutdoute == "Doute confirmé":
-            list_Veo_Doute.append(i)
-    list_Veo_Doute.sort(key=lambda r: r.RateFraude,reverse=True)
-   # paginatorD = Paginator(list_Veo_Doute,9)
-   # pageD = request.GET.get('pageD')
-   # veoD = paginator.get_page(pageD)
-    context={"SupUse":SupUse(request),"list_Veo_recente": veopg,"list_Veo_Doute": DosAffdout(),"NBDossiers":NBD,"NBDT":NBDT}
-    return render(request,"dossiertrait.html",context)
+    return render(request, "dossiertrait.html", context)
 @login_required
 def dossiersAtrait(request):
-    NBD=nbrDAT()
-    NBDT=nbrDT()
-    list_Veo_recente=[]
-    list_inst=[]
-    list_Veoservices=DosAff()
-    list_Veoservicesall= Veoservices.objects.all()
-    for i in list_Veoservicesall:
-        if i.Statut =="Dossier en instruction" and "D" in i.Dossier:
-            list_inst.append(i)
-    for i in list_Veoservices:
-        
-        if (i.statutdoute=="Non traité" and i.Statut!="Changement de procédure" and i.RateFraude not in [0,'0.0',None,'5.0','10.0']) or (i.statutdoute=="Attente photos Avant" and i.Photos_Avant!="" and i.Photos_Avant!=None and i.Statut!="Changement de procédure" and i.RateFraude not in [0,'0.0',None,'5.0','10.0']) :
-            i.RateFraude = str_to_float(i.RateFraude)
-            list_Veo_recente.append(i)
+    NBD = nbrDAT()
+    NBDT = nbrDT()
+    user_name = f"{request.user.first_name} {request.user.last_name}".strip()
+
+    list_inst = Veoservices.objects.filter(Statut="Dossier en instruction", Dossier__contains="D")
 
 
-    list_Veo_recente.sort(key=lambda r: r.RateFraude,reverse=True)
-    paginator = Paginator(list_Veo_recente,9)
+    list_Veoservices = DosAff()
+
+
+    list_Veo_recente = [
+        veo for veo in list_Veoservices
+        if (
+            (veo.statutdoute == "Non traité" and veo.Statut != "Changement de procédure" and veo.RateFraude not in [0, '0.0', None, '5.0', '10.0']) or
+            (veo.statutdoute == "Attente photos Avant" and veo.Photos_Avant not in ["", None] and veo.Statut != "Changement de procédure" and veo.RateFraude not in [0, '0.0', None, '5.0', '10.0'])
+        )
+    ]
+
+    for veo in list_Veo_recente:
+        veo.RateFraude = str_to_float(veo.RateFraude)
+
+    list_Veo_recente.sort(key=lambda r: r.RateFraude, reverse=True)
+
+    paginator = Paginator(list_Veo_recente, 9)
     page = request.GET.get('page')
     veopg = paginator.get_page(page)
-   # veopg.sort(key=lambda r: r.RateFraude,reverse=True)
-   
-    context={"SupUse":SupUse(request),"list_Veo_recente": veopg,"NBDossiers":NBD,"NBDT":NBDT ,"list_inst": list_inst}
-    return render(request,"dossieratrait.html",context) 
+
+    context = {
+        "SupUse": SupUse(request),
+        "list_Veo_recente": veopg,
+        "list_inst": list_inst,
+        "NBDossiers": NBD,
+        'user_name': user_name,
+        "NBDT": NBDT
+    }
+
+    return render(request, "dossieratrait.html", context)
 
 def DosTAff():
     Today_DateVeo=datetime.datetime.today().strftime('%d/%m/%Y %H:%M')
@@ -1627,7 +2124,17 @@ def observation(request):
 
     R14=Veo.Reg14()
 
-    context={"SupUse":SupUse(request),"NBDT":NBDT,"Veo":Veo,"Rate":Rate ,"R1": R1,"R1_P": R1_P, "R1_A":R1_A, "R2":R2, "R2_DDA":R2_DDA, "R2_DS":R2_DS,"R3":R3, "R3_DDA":R3_DDA, "R3_DS":R3_DS, "R4":R4, "R4_SP":R4_SP, "R4_SA":R4_SA,"R5":R5 ,"R5_Assis":R5_Assis ,"R6":R6,"R6_Assis1":R6_Assis1 ,"R6_Assis2":R6_Assis2,"R7":R7,"R7_P":R7_P,"R7_A":R7_A, "R9_DFP":R9_DFP, "R9_DS":R9_DS, "R9":R9,"R8":R8,"NBDossiers":NBD,"R11":R11, "R10_Dos":R10_Dos,"R10":R10 , "R12_Dos":R12_Dos,"R12":R12 , "R14":R14, "R13_Dos":R13_Dos,"R13":R13 }
+
+    R15=Veo.Reg15()[0]
+    R15_CN=Veo.Reg15()[1]
+
+    R16=Veo.Reg16()[0]
+    R16_Dos=Veo.Reg16()[1]
+
+    R17=Veo.Reg17()[0]
+    R17_Int=Veo.Reg17()[1]
+
+    context={"SupUse":SupUse(request),"NBDT":NBDT,"Veo":Veo,"Rate":Rate ,"R1": R1,"R1_P": R1_P, "R1_A":R1_A, "R2":R2, "R2_DDA":R2_DDA, "R2_DS":R2_DS,"R3":R3, "R3_DDA":R3_DDA, "R3_DS":R3_DS, "R4":R4, "R4_SP":R4_SP, "R4_SA":R4_SA,"R5":R5 ,"R5_Assis":R5_Assis ,"R6":R6,"R6_Assis1":R6_Assis1 ,"R6_Assis2":R6_Assis2,"R7":R7,"R7_P":R7_P,"R7_A":R7_A, "R9_DFP":R9_DFP, "R9_DS":R9_DS, "R9":R9,"R8":R8,"NBDossiers":NBD,"R11":R11, "R10_Dos":R10_Dos,"R10":R10 , "R12_Dos":R12_Dos,"R12":R12 , "R14":R14, "R13_Dos":R13_Dos,"R13":R13, "R15":R15, "R16":R16, "R17":R17,"R15_CN":R15_CN,"R16_Dos":R16_Dos,"R17_Int":R17_Int }
     return render(request,"detail.html",context)
 
 
@@ -1701,6 +2208,18 @@ def filtre_reg(request):
     elif (ch =="R14"):
         for i in listedossiers:
             if i.R14 != None and i.R14 != "":
+                liste.append(i)
+    elif (ch =="R15"):
+        for i in listedossiers:
+            if i.R15 != None and i.R15 != "":
+                liste.append(i)
+    elif (ch =="R16"):
+        for i in listedossiers:
+            if i.R16 != None and i.R16 != "":
+                liste.append(i)
+    elif (ch =="R17"):
+        for i in listedossiers:
+            if i.R17 != None and i.R17 != "":
                 liste.append(i)
     
     
@@ -1786,6 +2305,18 @@ def filtre_regAT(request):
         for i in listedossiers:
             if i.R14 != None and i.R14 != "":
                 liste.append(i)
+    elif (ch =="R15"):
+        for i in listedossiers:
+            if i.Reg15 != None and i.Reg15 != "":
+                liste.append(i)
+    elif (ch =="R16"):
+        for i in listedossiers:
+            if i.Reg16 != None and i.Reg16 != "":
+                liste.append(i)
+    elif (ch =="R17"):
+        for i in listedossiers:
+            if i.Reg17 != None and i.Reg17 != "":
+                liste.append(i)
 
     paginator = Paginator(liste,9)
     page = request.GET.get('page')
@@ -1868,6 +2399,18 @@ def filtre_regT(request):
         for i in listedossiers:
             if i.R14 != None and i.R14 != "":
                 liste.append(i)
+    elif (ch =="R15"):
+        for i in listedossiers:
+            if i.Reg15 != None and i.Reg15 != "":
+                liste.append(i)
+    elif (ch =="R16"):
+        for i in listedossiers:
+            if i.Reg16 != None and i.Reg16 != "":
+                liste.append(i)
+    elif (ch =="R17"):
+        for i in listedossiers:
+            if i.Reg17 != None and i.Reg17 != "":
+                liste.append(i)
     paginator = Paginator(liste,9)
     page = request.GET.get('page')
     veopg = paginator.get_page(page)
@@ -1877,17 +2420,10 @@ def filtre_regT(request):
     return render(request,"dossiertrait.html",context)
 
 
-
-
-
-
-
 ##################################################################################################################
 ##################################################################################################################
 ##################################################################################################################
 #################################################################################################################
-
-
 
 
 ####################################################################################################################*
@@ -3745,3 +4281,6 @@ def get_dossiers(request):
         response = json.dumps([{'Error':'Invalid Token'}])"""
     response = jsls
     return HttpResponse(response, content_type='text/json')
+
+
+

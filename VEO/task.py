@@ -1,5 +1,7 @@
 from __future__ import absolute_import, unicode_literals
-from celery import task
+#:wfrom celery import task
+from celery import shared_task
+
 from django.shortcuts import render, get_object_or_404
 from .models import *
 from django.contrib.auth.decorators import login_required
@@ -12,7 +14,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 from .models import *
 #from django.contrib.auth.models import User
-@task()
+@shared_task
 def scheduledTask():
     Today_DateVeo=None
     Today_DateVeo=datetime.today().strftime('%d/%m/%Y %H:%M')

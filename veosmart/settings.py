@@ -26,7 +26,21 @@ SECRET_KEY = 'django-insecure-k2q4krne^1e@7#+&(_!1(ka(-%*&j53(3lcwfx40rh&ibb=azk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['92.222.221.200','fraude.omegasin.ma']
+
+
+
+
+ALLOWED_HOSTS = ['92.222.221.200', 'fraude.omegasin.ma']
+
+# Application des paramètres de messagerie
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587  
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'khadija.elwazati@gmail.com'  
+EMAIL_HOST_PASSWORD = 'bnasdfhbzxelrxec'  
+DEFAULT_FROM_EMAIL = 'khadija.elwazati@gmail.com'  
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -40,6 +54,7 @@ INSTALLED_APPS = [
     'apis',
     'django_filters',
     'dbbackup',
+    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
 
 ]
 DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
@@ -54,7 +69,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_plotly_dash.middleware.BaseMiddleware',
 ]
 
 
@@ -167,13 +183,6 @@ MEDIA_URL='/media/'
 
 LOGIN_REDIRECT_URL="login/"
 LOGIN_URL = "/login/"
-
-
-
-
-
-
-
 
 #CELERY SETTINGS
 CELERY_BROKER_URL = 'redis://0.0.0.0:6379'

@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-color: #f4f4f4; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .header {
+            background: linear-gradient(90deg, #d32f2f, #e57373);
+            color: #ffffff;
+            padding: 20px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .content p {
+            line-height: 1.6;
+            color: #333333;
+        }
+        .content a {
+            color: #d32f2f;
+            text-decoration: none;
+        }
+        .content a:hover {
+            text-decoration: underline;
+        }
+        .footer {
+            padding: 10px 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #777777;
+            border-top: 1px solid #e0e0e0;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background: linear-gradient(90deg, #d32f2f, #e57373);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .button:hover {
+            background: linear-gradient(90deg, #b71c1c, #d32f2f);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Alerte de Fraude Élevée </h1>
+    </div>
+    <div class="content">
+        <p>Bonjour,</p>
+        <p>Attention, le dossier <strong>{{ dossier_reference }}</strong> a été identifié comme ayant un taux de fraude élevé.</p>
+        <p>Veuillez consulter le dossier en cliquant sur le bouton ci-dessous :</p>
+        <p><a href="{{ link }}" class="button">Voir le Dossier</a></p>
+        <table>
+            <tr>
+                <th>Immatriculation</th>
+                <th>Date du sinistre</th>
+                <th>Taux de fraude</th>
+            </tr>
+            <tr>
+                <td>{{ immatriculation }}</td>
+                <td>{{ date_sinistre }}</td>
+                <td>{{ rate_fraude }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="footer">
+        <p>Cordialement,<br>Votre équipe de VEOSMART</p>
+    </div>
+</div>
+</body>
+</html>

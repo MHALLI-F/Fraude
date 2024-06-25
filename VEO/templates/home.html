@@ -2,233 +2,170 @@
 {% load static %}
 
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+<head>
+    <meta charset="utf-8">
     <title>VEOSMART | Accueil</title>
-    <!-- MDB icon -->
-    <link rel="icon" href="img/mdb-favicon.ico" type="image/x-icon" />
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css" />
-    <!-- Google Fonts Roboto -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" />
-    <!-- MDB -->
-    <link rel="stylesheet" href="{% static 'css/mdb.min.css' %}" />
-    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.png' %}"/>
-	<style>
-		.right-tabs .nav {
-			float: right;
-			border-bottom: 0px;
-		}
-		.right-tabs .nav li { float: left }
-		.right-tabs .tab-content {
-			float: left;
-			border-top: 1px solid #ddd;
-			margin-top: -1px;
-		}
-	  .left-tabs .nav {
-			float: left;
-			border-bottom: 0px;
-		}
-		.left-tabs .nav li { float: right }
-		.left-tabs .tab-content {
-			float: left;
-			border-top: 1px solid #ddd;
-			margin-top: -1px;
-		}
-		
-		td,
-th {
-    border: 1px solid rgb(190, 190, 190);
-    padding: 10px;
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png" />
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <!-- Icon Font Stylesheet -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="{% static 'lib/owlcarousel/assets/owl.carousel.min.css' %}" rel="stylesheet">
+    <link href="{% static 'lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css' %}" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Template Stylesheet -->
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container-s position-relative bg-white d-flex p-0">
+
+<!-- Sidebar Start -->
+<div class="sidebar pe-4 pb-3">
+    <nav class="navbar bg-light navbar-light">
+        
+        <div class="navbar-brand mx-4 mb-3" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: auto;">
+            <a href="/home">
+                <img src="{% static 'img/logo.png' %}" alt="" style="width: 120px; height: 100px;">
+            </a>
+            {% if user.is_authenticated %}
+              
+                <div style="display: flex; align-items: center;">
+                    <p style="margin-top: 10px; margin-bottom: 0;">Bonjour, {{ user_name }}</p>
+                </div>
+            {% endif %}
+        </div>
+        <div class="navbar-nav w-100">
+            <a href="/home" class="nav-item nav-link active"><i class="fa fa-home me-2"></i>Accueil</a>
+            <a href="/dt" class="nav-item nav-link" style="white-space: nowrap;">
+                <i class="fa fa-hourglass-start me-2"></i>
+                Dossier à traiter<span class="badge rounded-pill badge-notification bg-danger" style="margin-left: 5px; vertical-align: middle;">{{ total_a_traiter }}</span>
+            </a>
+            <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossier traité</a>
+            {% if SupUse %}
+                <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace Recette</a>
+                <a href="/admin" class="nav-item nav-link"><i class="fa fa-user-cog me-2"></i>Admin</a>
+            {% endif %}
+            <a href="/dashboard" class="nav-item nav-link"><i class="fa fa-chart-line me-2"></i>Statistique</a>
+            <a href="/logout/" class="nav-item nav-link"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a>
+        </div>
+    </nav>
+</div>
+<!-- Sidebar End -->
+
+
+
+
+
+
+        <!-- Content Start -->
+        <div class="content">
+           <style>
+            
+
+
+.stats-card {
+    min-height: 150px; 
 }
 
-td {
-    text-align: center;
-}
+</style>
 
-tr:nth-child(even) {
-    background-color: rgb(255, 254, 254);
-}
+<div class="container-fluid pt-4 px-4">
+    <div class="row g-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 stats-card">
+                <i class="fa fa-tasks fa-3x text-primary"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Dossiers à traiter</p>
+                    <h6 class="mb-0">{% if display_data %}
+                        {{ total_a_traiter }}
+                    {% else %}
+                        0
+                    {% endif %}</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 stats-card">
+                <i class="fa fa-check-circle fa-3x text-primary"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Dossiers traités</p>
+                    <h6 class="mb-0">{% if display_data %}
+                        {{ total_traite }}
+                    {% else %}
+                        0
+                    {% endif %}
+                        </h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 stats-card">
+                <i class="fa fa-chart-line fa-3x text-primary"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Doutes confirmés</p>
+                    <h6 class="mb-0">{% if display_data %}
+                        {{ total_doute_confirme }}
+                    {% else %}
+                        0
+                    {% endif %}
+                        </h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-light rounded d-flex align-items-center justify-content-between p-4 stats-card">
+                <i class="fa fa-chart-bar fa-3x text-primary"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Moyenne doute</p>
+                    <h6 class="mb-0">{% if display_data %}
+                        {{ moyenne_doute|floatformat:3 }}%
+                    {% else %}
+                        0
+                    {% endif %}
+                        </h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-th[scope="col"] {
-    background-color: #cccccc;
-    color: #fff;
-}
 
-th[scope="row"] {
-    background-color: #cecece;
-}
 
-caption {
-    padding: 10px;
-    caption-side: bottom;
-}
 
-table {
-    border-collapse: collapse;
-    border: 2px solid rgb(200, 200, 200);
-    letter-spacing: 1px;
-    font-family: sans-serif;
-    font-size: .8rem;
-}
-		</style>
-	</head>
-	<body>
-	{% load static %}
-	
-	<header>
-	
-	  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-		<!-- Container wrapper -->
-	  
-		  <!-- Toggle button -->
-		<!-- Container wrapper -->
-		<div class="container-fluid">
-		<!-- Toggle button -->
-		
-		<a class="navbar-brand" href="/home">
-			<img
-			src="{% static 'favicon.png' %}"
-			height="120"
-			width ="160"
-			alt=""
-		  
-			style="margin-top: 0px; margin-left: 30px;"/>
-			</a>
-	  
-		
-		
-		</nav>
-	
-	
-		<div class="right-tabs clearfix">
-		  <ul class="nav nav-tabs">
-			{% if SupUse == True %}
-			<li><a
-			class="nav-link"
-			id="ex3-tab-3"
-			data-mdb-toggle="tab"
-			href="/home_test"
-			role="tab"
-			aria-controls="ex3-tabs-3"
-			aria-selected="false"
-			>Espace Recette</a
-			>
-		  </li>
-		  {% endif %}
-		{% if SupUse == True %}
-			<li><a
-			class="nav-link"
-			id="ex3-tab-3"
-			data-mdb-toggle="tab"
-			href="/admin"
-			role="tab"
-			aria-controls="ex3-tabs-3"
-			aria-selected="false"
-			>Admin</a
-			>
-		  </li>
-		  {% endif %}
-			<li><a
-			class="nav-link"
-			id="ex3-tab-3"
-			data-mdb-toggle="tab"
-			href="/logout/" 
-			onclick="return confirm('Vous êtes sur de se  déconnecter?');"
-			role="tab"
-			aria-controls="ex3-tabs-3"
-			aria-selected="false"
-			>Déconnexion</a
-			>
-		  </li>
-	
-		  </ul>
-		 
-		  <div class="left-tabs clearfix">
-		<!-- Tabs navs -->
-		<ul class="nav nav-tabs mb-3" id="ex1" role="tablist">
-		  <li class="nav-item" role="presentation">
-			<a
-			class="nav-link active"
-			id="ex3-tab-1"
-			data-mdb-toggle="tab"
-			href="/home"
-			role="tab"
-			aria-controls="ex3-tabs-1"
-			aria-selected="true"
-			>Accueil</a>
-		  </li>
-		  <li class="nav-item" role="presentation">
-			<a
-			class="nav-link"
-			id="ex3-tab-2"
-			data-mdb-toggle="tab"
-			href="/dt"
-			role="tab"
-			aria-controls="ex3-tabs-2"
-			aria-selected="false">Dossiers à traiter &nbsp&nbsp&nbsp
-			<span class="badge rounded-pill badge-notification bg-danger"  >{{NBDossiers}} </span></a>
-		  </li>
-		  <li class="nav-item" role="presentation">
-			<a
-			class="nav-link"
-			id="ex3-tab-3"
-			data-mdb-toggle="tab"
-			href="/dtraités"
-			role="tab"
-			aria-controls="ex3-tabs-3"
-			aria-selected="false"
-			>Dossiers traités</a
-			>
-		  </li>
-		
-	
-		  </ul>
-		  <!-- Tabs navs -->
-		  
-		
-		
-		
-	 
-	
-	
-	
-		</div>
-		
-	  </header>
-  
-
-<script type="text/javascript">
-document.getElementById("search").value="{{query}}"
-</script>
+            <script type="text/javascript">
+            document.getElementById("search").value="{{query}}"
+            </script>
 
 {% block content %}
-
-<center>
- 
-
-  <!-- Background image -->
-
-
-
-  <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-    <li class="nav-item">
-											    <script type="text/javascript">
-											    document.getElementById("search").value="{{query}}"
-											    </script>
-</center>
-<div class="row"> 
-<div class="col-sm-1" >
-</div>
-<div class="col-sm-11" >
-<form  class="row row-cols-lg-auto g-3 align-items-center"  action="{% url 'filtre_reg' %}" methode='GET'>
-	
-		<div class="col-sm-10">
-
-	
-	<select class="nav-link dropdown-toggle" name=reg id=select   autocomplete=off required>
+                        <center>
+              <!-- Background image -->
+              <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                  <script type="text/javascript">
+                  document.getElementById("search").value="{{query}}"
+                  </script>
+            </center>
+            <!-- document details -->
+            <div class="container-fluid pt-4 px-4">
+ <form  class="row row-cols-lg-auto g-3 align-items-center"  action="{% url 'filtre_reg' %}" methode='GET'>
+	<div class="col-sm-10">
+    <select class="nav-link dropdown-toggle rounded border border-gray" name="reg" id="select" autocomplete="off" required style="color: black;">
 		<option selected>Séléctionner une règle</option>
 		<option value="R1">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement confirmé frauduleux. (Vtiger)</option>
 		<option value="R2">Sinistre survenu en moins d'un mois après date début d'assurance de la partie principale.</option>
@@ -245,155 +182,212 @@ document.getElementById("search").value="{{query}}"
 		<option value="R14">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historique signalé douteux. (OMEGA)</option>
 		<option value="R13_confirme">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement confirmé frauduleux. (OMEGA) </option>
 		<option value="R12_rejete">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement avec doute rejeté. (OMEGA) </option>
+        <option value="R15">L'assuré principal et l'adversaire portent le même nom de famille. </option>
+        <option value="R16">Le garage en charge du dossier a déjà été impliqué dans une affaire de fraude.</option>
+        <option value="R17">L'intermédiaire est commun aux deux parties impliquées dans le sinistre.</option>
 	</select></div>
-	<div class="col-sm-2">
-	<button class="btn btn-light"  style="background-color: #bfc2c2;" ><i class="fas fa-filter"></i></button></div>
+
+              <div class="col-sm-2">
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Filtrer</button>
+                        </div>
+                    </div>
 </form>
-</div>
-<br><br>
+                <br/>
+                <form class="d-flex input-group w-auto" action="{% url 'filterDos'  %}" methode='GET'>
+                <div class="form-outline">
+                 <input type="search"  class="form-control rounded" name="search"  placeholder="Dossier ou Matricule"  />
+                </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i>
+                  </button>
 
-<div class="row"> 
-	
-	<div class="col-sm-1" >
-</div>
+                  </form>
+                <br/>
+<!--  Filtrage pour la date de création et le statut -->
+    <form action="{% url 'filter_home' %}" method="get" class="form-inline" onsubmit="formatDate()">
+        <div class="form-group">
+            <label for="fixed_date">Date de création (à partir de):</label>
+            <input type="date" id="fixed_date" name="fixed_date" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="statut">Statut:</label>
+            <select id="statut" name="statut" class="form-control">
+                <option value="">Sélectionner un statut</option>
+                <option value="Dossier créé">Dossier créé</option>
+                <option value="Dossier envoyé">Dossier envoyé</option>
+                <option value="Rdv replanifié">Rdv replanifié</option>
+                <option value="CDC envoyé au garage">CDC envoyé au garage</option>
+                <option value="Photos Avant">Photos Avant</option>
+                <option value="Offre communiquée">Offre communiquée</option>
+                <option value="Devis envoyé par le garage">Devis envoyé par le garage</option>
+                <option value="Instance Accord compagnie">Instance Accord compagnie</option>
+                <option value="Instance Accord Expert2">Instance Accord Expert2</option>
+                <option value="Accord à modifier">Accord à modifier</option>
+                <option value="Accord à envoyer">Accord à envoyer</option>
+                <option value="Devis validé">Devis validé</option>
+                <option value="Demande 2e accord">Demande 2e accord</option>
+                <option value="Attente facture">Attente facture</option>
+                <option value="Instance FFT/rapport">Instance FFT/rapport</option>
+                <option value="Instance RDV Client ">Instance RDV Client</option>
+                <option value="Instance publication rapport">Instance publication rapport</option>
+                <option value="Dossier complété">Dossier complété</option>
+                <option value="Dossier réglé">Dossier réglé</option>
+                <option value="Dossier sans suite">Dossier sans suite</option>
+                <option value="Dossier sans suite après expertise">Dossier sans suite après expertise</option>
+                <option value="Annulé par l'expert">Annulé par l'expert</option>
+                <option value="Dossier traité en Hifad">Dossier traité en Hifad</option>
+                <option value="Rapport rejeté">Rapport rejeté</option>
+                <option value="Changement procédure">Changement procédure</option>
+                <option value="Dossier en instruction">Dossier en instruction</option>
+                <option value="Dossier rejeté">Dossier rejeté</option>
+            </select>
+        </div>
+        <br/>
+        <button type="submit" class="btn btn-primary">Filtrer</button>
+    </form>
 
+        <br/>
+<div class="container-fluid pt-4 px-4 " style="margin-left: -20px;">
+    <div class="card shadow">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"></h5>
+            <a href="#"></a>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-end">
+                  {% if list_Veo_recente.has_previous %}
+                  <li class="page-item enabled">
+                    <a class="page-link" href="?page=1"><i class="fas fa-angle-double-left"></i></a>	</li>
+                    <li class="page-item enabled">
+                <a class="page-link" href="?page={{list_Veo_recente.previous_page_number}}">
 
+                        <i class="fas fa-angle-left"></i> Précédent
+                </a></li>
+                 {% endif %}
+                 <li class="page-item disabled">  <a class="page-link" href=#>
+                   {{ list_Veo_recente.number }} sur {{ list_Veo_recente.paginator.num_pages }}
+                   </a></li>
+                   {% if list_Veo_recente.has_next %}
+                   <li class="page-item enabled"> <a class="page-link" href="?page={{list_Veo_recente.next_page_number }}">
 
-
-<form class="d-flex input-group w-auto" action="{% url 'filterDos'  %}" methode='GET'>
-  <div class="form-outline">
-
-    <input type="search"  class="form-control rounded" name="search"  placeholder="Dossier ou Matricule"  />
-    <label class="form-label" for="form1">Rechercher</label>
-
-  </div>
-  <button type="submit" class="btn btn-primary">
-    <i class="fas fa-search"></i>
-  </button>
-</div>
-</form>
-
-
-</div>
-
-
-
-
-			      <div class="card-body">
-					<nav aria-label="Page navigation example">
-						<ul class="pagination justify-content-end">
-						 
-					
-				   
-							{% if list_Veo_recente.has_previous %}
-							<li class="page-item enabled">
-				   
-							
-							  <a class="page-link" href="?page=1"><i class="fas fa-angle-double-left"></i></a>	</li>	
-							  <li class="page-item enabled"> 
-						<a class="page-link" href="?page={{list_Veo_recente.previous_page_number}}"> 
-					   
-									  <i class="fas fa-angle-left"></i> Précédent
-					   
-						</a></li>
-						 {% endif %}
-					  
-						 <li class="page-item disabled">  <a class="page-link" href=#>
-				   
-							 {{ list_Veo_recente.number }} sur {{ list_Veo_recente.paginator.num_pages }}
-					   
-							 </a></li>
-							 {% if list_Veo_recente.has_next %}
-							 <li class="page-item enabled"> <a class="page-link" href="?page={{list_Veo_recente.next_page_number }}"> 
-					
-																					  Suivant <i class="fas fa-angle-right"></i>
-																										  </a></li>
-																										  <li class="page-item enabled">
-								  <a  class="page-link" href="?page={{ list_Veo_recente.paginator.num_pages }}">  <i class="fas fa-angle-double-right"> </i></a>   </li>
-						 {% endif %}
-						</ul>
-					   </center> </nav>
-
-
-                                <div class="table-responsive" > 
-							
-				                                                 <table >
-        <thead>
+                                                Suivant <i class="fas fa-angle-right"></i>
+                                                          </a></li>
+                                                          <li class="page-item enabled">
+                      <a  class="page-link" href="?page={{ list_Veo_recente.paginator.num_pages }}">  <i class="fas fa-angle-double-right"> </i></a>   </li>
+                 {% endif %}
+                </ul>
+                 </center> </nav>
+        </div>
+        <style>
            
-	<tr >
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"> <span class="input-group-text border-0 d-none d-lg-flex">Dossier </span><a  href="/TrDos" >{% if tri == 1 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrDosI">{% if tri == 12 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>		
-			
-			
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Matricule</span><a  aria-current="page" href="/TrImmat">{% if tri == 2 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a  href="/TrImmatI">{% if tri == 13 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</i></a></span></th>
-																																			
-           
+            .custom-table th,
+            .custom-table td {
+                vertical-align: middle;
+            }
+        
+            .custom-table th {
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+        
+            .custom-table th a {
+                display: inline-block;
+                margin-left: 5px;
+                color: inherit;
+            }
+        </style>
+        
+        <div class="card-body " >
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 custom-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col"><a href="/TrDos" class="{% if tri == 1 or tri == 12 %} active-tri {% endif %}">Dossier</a></th>
+                            <th scope="col"><a href="/TrImmat" class="{% if tri == 2 or tri == 13 %} active-tri {% endif %}">Matricule</a></th>
+                            <th scope="col"><a href="/TrDsin" class="{% if tri == 3 or tri == 14 %} active-tri {% endif %}">Date sinistre</a></th>
+                            <th scope="col"><a href="/TrDcr" class="{% if tri == 4 or tri == 15 %} active-tri {% endif %}">Date création</a></th>
+                            <th scope="col"><a href="/TrType" class="{% if tri == 5 or tri == 16 %} active-tri {% endif %}">Type</a></th>
+                            <th scope="col"><a href="/TrStat" class="{% if tri == 6 or tri == 17 %} active-tri {% endif %}">Statut</a></th>
+                            <th scope="col"><a href="/TrExp" class="{% if tri == 7 or tri == 18 %} active-tri {% endif %}">Expert</a></th>
+                            <th scope="col"><a href="/TrIAdv" class="{% if tri == 8 or tri == 19 %} active-tri {% endif %}">Immat_Adverse</a></th>
+                            <th scope="col"><a href="/TrRF" class="{% if tri == 9 or tri == 20 %} active-tri {% endif %}">RateFraude</a></th>
+                            <th scope="col"><a href="/TrStatDoute" class="{% if tri == 10 or tri == 21 %} active-tri {% endif %}">Statut doute</a></th>
+                            <th scope="col">Observation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in list_Veo_recente %}
+                        <tr>
+                            <th scope="row">{{i.Dossier}}</th>
+                            <td scope="row">{{i.Immatriculation}}</td>
+                            <td scope="row">{{i.Date_sinistre}}</td>
+                            <td scope="row">{{i.Date_création}}</td>
+                            <td>{{i.Procédure}}</td>
+                            <td>{{i.Statut}}</td>
+                            <td>{{i.Expert}}</td>
+                            <td>{{i.ImmatriculationAdverse}}</td>
+                            <td><a href="{% url 'details' i.id %}">{{i.RateFraude}}%</a></td>
+                            <td>{{i.statutdoute}}</td>
+                            <td>{% if i.observation != None %} {{i.observation}} {% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+ <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var fixedDateElement = document.getElementById('fixed_date');
+        var statutElement = document.getElementById('statut');
     
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"> <span class="input-group-text border-0 d-none d-lg-flex">Date sinistre</span><a  aria-current="page" href="/TrDsin">{% if tri == 3 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrDsinI">{% if tri == 14 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %} </a></span> </th>
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Date création </span><a  aria-current="page" href="/TrDcr">{% if tri == 4 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrDcrI">{% if tri == 15 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
+        if (fixedDateElement) {
+            fixedDateElement.value = "{{ request.GET.fixed_date|default:'' }}";
+        }
+        if (statutElement) {
+            statutElement.value = "{{ request.GET.statut|default:'' }}";
+        }
+    });
+    </script>
 
-
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Type</span><a  aria-current="page" href="/TrType">{% if tri == 5 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrTypeI">{% if tri == 16 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
+    
+<script>
+    function toggleSortIcons(thElement) {
+        var icons = thElement.querySelector('.sort-icons');
+        if (icons.style.display === 'none') {
             
-           
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Statut</span><a  aria-current="page" href="/TrStat">{% if tri == 6 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrStatI">{% if tri == 17 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span> </th>
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Expert</span><a  aria-current="page" href="/TrExp"><span>{% if tri == 7 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a  aria-current="page" href="/TrExpI">{% if tri == 18 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span> </th>
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Immat_Adverse</span><a  aria-current="page" href="/TrIAdv">{% if tri == 8  %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a aria-current="page" href="/TrIAdvI">{% if tri == 19 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="b order-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">RateFraude</span><a  aria-current="page" href="/TrRF">{% if tri == 9 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a  aria-current="page" href="/TrRFI">{% if tri == 20 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="b order-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex"><span class="input-group-text border-0 d-none d-lg-flex">Statut doute</span><a  aria-current="page" href="/TrStatDoute">{% if tri == 10 %} <i class="fas fa-long-arrow-alt-up" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-up" style="border-color: #60757C;color: #60757C;" ></i> {% endif %}</a><a  aria-current="page" href="/TrStatDouteI">{% if tri == 21 %} <i class="fas fa-long-arrow-alt-down" style="border-color: #E3351D;color: #E3351D;" ></i> {% else %}<i class="fas fa-long-arrow-alt-down" style="b order-color: #60757C;color: #60757C;" ></i> {% endif %}</a></span></th>
-			<th scope="col"><span class="input-group-text border-0 d-none d-lg-flex">Observation</span></th>
-          </tr>
-        </thead>
-																																																						                                                                              
-
-      
-        <tbody>
-			{% for i in list_Veo_recente %}
-            <tr>
-		     <th scope="row">{{i.Dossier}}</th>
-            <td scope="row">{{i.Immatriculation}}</td>
-          
-         
-            
-            <td scope="row">{{i.Date_sinistre}}</td>
-	     <td scope="row">{{i.Date_création}}</td>
-            <td>{{i.Procédure}}</td>
-	     <td>{{i.Statut}}</td>
-             <td>{{i.Expert}}</td>
-             <td>{{i.ImmatriculationAdverse}}</td>
-            
-            
-            <td><a href="{% url 'details' i.id %}"  > {{i.RateFraude}}% </a></td>
-	    <td>{{i.statutdoute}}</td>
-            <td>{% if i.observation != None %} {{i.observation}} {% endif %}</td>
-            
-            
-            <!--############################################################################################################"-->
-
-            
-          </tr>
-          
-        
+            document.querySelectorAll('.sort-icons').forEach(function(icon) {
+                icon.style.display = 'none';
+            });
+            icons.style.display = 'inline';  
+        } else {
+            icons.style.display = 'none';  
+        }
+    }
+    </script>
 
 
 
-         {% endfor %}    
+    </div>
 
-										 </table></div></div></div></center>
-        
-          
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'lib/chart/chart.min.js' %}"></script>
+    <script src="{% static 'lib/easing/easing.min.js' %}"></script>
+    <script src="{% static 'lib/waypoints/waypoints.min.js' %}"></script>
+    <script src="{% static 'lib/owlcarousel/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'lib/tempusdominus/js/moment.min.js' %}"></script>
+    <script src="{% static 'lib/tempusdominus/js/moment-timezone.min.js' %}"></script>
+    <script src="{% static 'lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js' %}"></script>
 
-
-
-
-
-      </table>
-      <center>    
-      {% endblock %}
-<br>
-
-
-<br>
-<br>
-
-  </body>
+    <!-- Template Javascript -->
+    <!-- <script src="{% static 'js/main.js' %}"></script> -->
+</body>
 </html>
+ {%endblock%}
+
