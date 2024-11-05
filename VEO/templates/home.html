@@ -54,9 +54,9 @@
             <a href="/home" class="nav-item nav-link active"><i class="fa fa-home me-2"></i>Accueil</a>
             <a href="/dt" class="nav-item nav-link" style="white-space: nowrap;">
                 <i class="fa fa-hourglass-start me-2"></i>
-                Dossier à traiter<span class="badge rounded-pill badge-notification bg-danger" style="margin-left: 5px; vertical-align: middle;">{{ total_a_traiter }}</span>
+                Dossiers à traiter<span class="badge rounded-pill badge-notification bg-danger" style="margin-left: 5px; vertical-align: middle;">{{ total_a_traiter }}</span>
             </a>
-            <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossier traité</a>
+            <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossiers traités</a>
             {% if SupUse %}
                 <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace Recette</a>
                 <a href="/admin" class="nav-item nav-link"><i class="fa fa-user-cog me-2"></i>Admin</a>
@@ -134,7 +134,7 @@
                 <div class="ms-3">
                     <p class="mb-2">Moyenne doute</p>
                     <h6 class="mb-0">{% if display_data %}
-                        {{ moyenne_doute|floatformat:3 }}%
+                        {{ moyenne_doute|floatformat:0 }}%
                     {% else %}
                         0
                     {% endif %}
@@ -182,9 +182,9 @@
 		<option value="R14">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historique signalé douteux. (OMEGA)</option>
 		<option value="R13_confirme">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement confirmé frauduleux. (OMEGA) </option>
 		<option value="R12_rejete">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement avec doute rejeté. (OMEGA) </option>
-        <option value="R15">L'assuré principal et l'adversaire portent le même nom de famille. </option>
-        <option value="R16">Le garage en charge du dossier a déjà été impliqué dans une affaire de fraude.</option>
-        <option value="R17">L'intermédiaire est commun aux deux parties impliquées dans le sinistre.</option>
+      <!--  <option value="R15">L'assuré principal et l'adversaire portent le même nom de famille. </option> 
+        <option value="R16">Le garage en charge du dossier a déjà été impliqué dans une affaire de fraude.</option>-->
+       <!-- <option value="R17">L'intermédiaire est commun aux deux parties impliquées dans le sinistre.</option> -->
 	</select></div>
 
               <div class="col-sm-2">
@@ -204,15 +204,21 @@
 
                   </form>
                 <br/>
-<!--  Filtrage pour la date de création et le statut -->
-    <form action="{% url 'filter_home' %}" method="get" class="form-inline" onsubmit="formatDate()">
-        <div class="form-group">
-            <label for="fixed_date">Date de création (à partir de):</label>
-            <input type="date" id="fixed_date" name="fixed_date" class="form-control">
+   <!-- Filtrage pour la date de création et le statut sur la même ligne avec le bouton -->
+   <form action="{% url 'filter_home' %}" method="get" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 0;">
+    <div class="form-group" style="margin-right: 20px; flex: 1; display: flex; align-items: center;">
+        <div style="white-space: nowrap; margin-right: 10px;">Date de création :</div>
+        <div class="input-group" style="flex-grow: 1; display: flex; align-items: center;">
+            <input type="date" id="fixed_date" name="fixed_date" class="form-control" style="flex-grow: 1;">
+            <button type="button" class="btn btn-light" onclick="clearField('fixed_date')" style="width: 40px; margin-left: 0px;">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <div class="form-group">
-            <label for="statut">Statut:</label>
-            <select id="statut" name="statut" class="form-control">
+    </div>
+    <div class="form-group" style="flex: 1; display: flex; align-items: center;">
+        <div style="white-space: nowrap; margin-right: 10px;">Statut:</div>
+        <div class="input-group" style="flex-grow: 1; display: flex; align-items: center;">
+            <select id="statut" name="statut" class="form-control" style="flex-grow: 1;">
                 <option value="">Sélectionner un statut</option>
                 <option value="Dossier créé">Dossier créé</option>
                 <option value="Dossier envoyé">Dossier envoyé</option>
@@ -238,14 +244,22 @@
                 <option value="Annulé par l'expert">Annulé par l'expert</option>
                 <option value="Dossier traité en Hifad">Dossier traité en Hifad</option>
                 <option value="Rapport rejeté">Rapport rejeté</option>
-                <option value="Changement procédure">Changement procédure</option>
                 <option value="Dossier en instruction">Dossier en instruction</option>
                 <option value="Dossier rejeté">Dossier rejeté</option>
             </select>
+            <button type="button" class="btn btn-light" onclick="clearField('statut')" style="width: 40px; margin-left: 0px;">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <br/>
-        <button type="submit" class="btn btn-primary">Filtrer</button>
-    </form>
+    </div>
+    <button type="submit" class="btn btn-primary" style="white-space: nowrap; margin-left: 5px;">Filtrer</button>
+</form>
+
+
+
+
+
+    
 
         <br/>
 <div class="container-fluid pt-4 px-4 " style="margin-left: -20px;">
@@ -327,8 +341,9 @@
                             <td>{{i.Statut}}</td>
                             <td>{{i.Expert}}</td>
                             <td>{{i.ImmatriculationAdverse}}</td>
-                            <td><a href="{% url 'details' i.id %}">{{i.RateFraude}}%</a></td>
-                            <td>{{i.statutdoute}}</td>
+                            <td>{% if i.RateFraude != null and i.RateFraude != None %}<a href="{% url 'details' i.id %}">{{i.RateFraude}}%{% endif %}</a></td>
+                            {% if i.statutdoute != null and i.statutdoute != None %}
+                            <td>{{i.statutdoute}}</td>{% endif %}
                             <td>{% if i.observation != None %} {{i.observation}} {% endif %}</td>
                         </tr>
                         {% endfor %}
@@ -369,6 +384,17 @@
         }
     }
     </script>
+
+<script>
+    function clearField(fieldId) {
+        var element = document.getElementById(fieldId);
+        if (element.type === 'date' || element.type === 'text') {
+            element.value = '';
+        } else if (element.tagName === 'SELECT') {
+            element.selectedIndex = 0;
+        }
+    }
+</script>
 
 
 

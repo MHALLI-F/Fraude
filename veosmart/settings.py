@@ -197,7 +197,7 @@ CELERY_BEAT_SCHEDULE = {
          #   'schedule':crontab(hours = crontab_parser(24).parse('*/10')),
 
            # 'schedule': crontab(minute='*/60'),
-            'schedule':30,
+            'schedule':60,
             }
         }
 

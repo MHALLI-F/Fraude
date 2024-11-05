@@ -48,7 +48,7 @@
             {% if user.is_authenticated %}
               
                 <div style="display: flex; align-items: center;">
-                    <p style="margin-top: 10px; margin-bottom: 0;">Bonjour, {{ user_name }}!</p>
+                    <p style="margin-top: 10px; margin-bottom: 0;">Bonjour, {{ user_name }}</p>
                 </div>
             {% endif %}
         </div>
@@ -56,9 +56,9 @@
             <a href="/home" class="nav-item nav-link"><i class="fa fa-home me-2"></i>Accueil</a>
             <a href="/dt" class="nav-item nav-link active" style="white-space: nowrap;">
                 <i class="fa fa-hourglass-start me-2"></i>
-                Dossier à traiter<span class="badge rounded-pill badge-notification bg-danger" style="margin-left: 5px; vertical-align: middle;">{% get_total_a_traiter %}</span>
+                Dossiers à traiter<span class="badge rounded-pill badge-notification bg-danger" style="margin-left: 5px; vertical-align: middle;">{{ total_a_traiter }}</span>
             </a>
-            <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossier traité</a>
+            <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossiers traités</a>
             {% if SupUse == True %}
                 <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace Recette</a>
                 <a href="/admin" class="nav-item nav-link"><i class="fa fa-user-cog me-2"></i>Admin</a>
@@ -110,9 +110,9 @@
                             <option value="R14">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historique signalé douteux. (OMEGA)</option>
                             <option value="R13_confirme">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement confirmé frauduleux. (OMEGA) </option>
                             <option value="R12_rejete">L'une des immatriculations (principale ou adverse) a déjà été impliquée dans un dossier historiquement avec doute rejeté. (OMEGA) </option>
-                            <option value="R15">L'assuré principal et l'adversaire portent le même nom de famille. </option>
-                            <option value="R16">Le garage en charge du dossier a déjà été impliqué dans une affaire de fraude.</option>
-                            <option value="R17">L'intermédiaire est commun aux deux parties impliquées dans le sinistre.</option>
+                          <!--  <option value="R15">L'assuré principal et l'adversaire portent le même nom de famille. </option> 
+                            <option value="R16">Le garage en charge du dossier a déjà été impliqué dans une affaire de fraude.</option>-->
+                            <!-- <option value="R17">L'intermédiaire est commun aux deux parties impliquées dans le sinistre.</option> -->
                         </select>
                     </div>
                     <div class="col-sm-2">
@@ -122,58 +122,108 @@
                     </div>
                 </form>
                 <br/>
-                <form class="d-flex input-group w-auto" action="{% url 'filterDosAT' %}" method='GET'>
-                    <div class="form-outline">
-                        <input type="search" class="form-control rounded" name="search" placeholder="Dossier ou Matricule" />
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
+
+                <div style="display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap;">
+                    <!-- Formulaire de recherche par dossier ou matricule -->
+                    <form class="d-flex input-group w-auto" action="{% url 'filterDosAT' %}" method='GET' style="margin-right: 20px;">
+                        <div class="form-outline">
+                            <input type="search" class="form-control rounded" name="search" placeholder="Dossier ou Matricule" />
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                    
+                    <!-- Formulaire de filtrage par taux de fraude -->
+                    <form action="{% url 'filter_by_rate_fraude' %}" method="get" style="display: flex; align-items: center;">
+                        <select id="fraude_min" name="fraude_min" class="form-control" style="margin-right: 0px;">
+                            <option value="">Sélectionner un taux de fraude</option>
+                            <option value="5" {% if request.GET.fraude_min == "5" %}selected{% endif %}>5%</option>
+                            <option value="10" {% if request.GET.fraude_min == "10" %}selected{% endif %}>10%</option>
+                            <option value="15" {% if request.GET.fraude_min == "15" %}selected{% endif %}>15%</option>
+                            <option value="20" {% if request.GET.fraude_min == "20" %}selected{% endif %}>20%</option>
+                            <option value="25" {% if request.GET.fraude_min == "25" %}selected{% endif %}>25%</option>
+                            <option value="30" {% if request.GET.fraude_min == "30" %}selected{% endif %}>30%</option>
+                            <option value="35" {% if request.GET.fraude_min == "35" %}selected{% endif %}>35%</option>
+                            <option value="40" {% if request.GET.fraude_min == "40" %}selected{% endif %}>40%</option>
+                            <option value="45" {% if request.GET.fraude_min == "45" %}selected{% endif %}>45%</option>
+                            <option value="50" {% if request.GET.fraude_min == "50" %}selected{% endif %}>50%</option>
+                            <option value="55" {% if request.GET.fraude_min == "55" %}selected{% endif %}>55%</option>
+                            <option value="60" {% if request.GET.fraude_min == "60" %}selected{% endif %}>60%</option>
+                            <option value="65" {% if request.GET.fraude_min == "65" %}selected{% endif %}>65%</option>
+                            <option value="70" {% if request.GET.fraude_min == "70" %}selected{% endif %}>70%</option>
+                            <option value="75" {% if request.GET.fraude_min == "75" %}selected{% endif %}>75%</option>
+                            <option value="80" {% if request.GET.fraude_min == "80" %}selected{% endif %}>80%</option>
+                            <option value="85" {% if request.GET.fraude_min == "85" %}selected{% endif %}>85%</option>
+                            <option value="90" {% if request.GET.fraude_min == "90" %}selected{% endif %}>90%</option>
+                            <option value="95" {% if request.GET.fraude_min == "95" %}selected{% endif %}>95%</option>
+                        </select>
+                        <button type="button" class="btn btn-light" onclick="clearSelection('fraude_min')" style="margin-right: 5px;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                
+                
+
                 <br/>
 
                 <!-- Formulaire de filtrage pour la date de création et le statut -->
-                <form action="{% url 'filter_dossieratrait' %}" method="get" class="form-inline">
-                    <div class="form-group">
-                        <label for="fixed_date">Date de création:</label>
-                        <input type="date" id="fixed_date" name="fixed_date" class="form-control">
+                <form action="{% url 'filter_dossieratrait' %}" method="get" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 0;">
+                    <div class="form-group" style="margin-right: 20px; flex: 1; display: flex; align-items: center;">
+                        <div style="white-space: nowrap; margin-right: 10px;">Date de création :</div>
+                        <div class="input-group" style="flex-grow: 1; display: flex; align-items: center;">
+                            <input type="date" id="fixed_date" name="fixed_date" class="form-control" style="flex-grow: 1;">
+                            <button type="button" class="btn btn-light" onclick="clearField('fixed_date')" style="width: 40px; margin-left: 0px;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="statut">Statut:</label>
-                        <select id="statut" name="statut" class="form-control">
-                            <option value="">Sélectionner un statut</option>
-                            <option value="Dossier créé">Dossier créé</option>
-                            <option value="Dossier envoyé">Dossier envoyé</option>
-                            <option value="Rdv replanifié">Rdv replanifié</option>
-                            <option value="CDC envoyé au garage">CDC envoyé au garage</option>
-                            <option value="Photos Avant">Photos Avant</option>
-                            <option value="Offre communiquée">Offre communiquée</option>
-                            <option value="Devis envoyé par le garage">Devis envoyé par le garage</option>
-                            <option value="Instance Accord compagnie">Instance Accord compagnie</option>
-                            <option value="Instance Accord Expert2">Instance Accord Expert2</option>
-                            <option value="Accord à modifier">Accord à modifier</option>
-                            <option value="Accord à envoyer">Accord à envoyer</option>
-                            <option value="Devis validé">Devis validé</option>
-                            <option value="Demande 2e accord">Demande 2e accord</option>
-                            <option value="Attente facture">Attente facture</option>
-                            <option value="Instance FFT/rapport">Instance FFT/rapport</option>
-                            <option value="Instance RDV Client">Instance RDV Client</option>
-                            <option value="Instance publication rapport">Instance publication rapport</option>
-                            <option value="Dossier complété">Dossier complété</option>
-                            <option value="Dossier réglé">Dossier réglé</option>
-                            <option value="Dossier sans suite">Dossier sans suite</option>
-                            <option value="Dossier sans suite après expertise">Dossier sans suite après expertise</option>
-                            <option value="Annulé par l'expert">Annulé par l'expert</option>
-                            <option value="Dossier traité en Hifad">Dossier traité en Hifad</option>
-                            <option value="Rapport rejeté">Rapport rejeté</option>
-                            <option value="Changement procédure">Changement procédure</option>
-                            <option value="Dossier en instruction">Dossier en instruction</option>
-                            <option value="Dossier rejeté">Dossier rejeté</option>
-                        </select>
+                    <div class="form-group" style="flex: 1; display: flex; align-items: center;">
+                        <div style="white-space: nowrap; margin-right: 10px;">Statut:</div>
+                        <div class="input-group" style="flex-grow: 1; display: flex; align-items: center;">
+                            <select id="statut" name="statut" class="form-control" style="flex-grow: 1;">
+                                <option value="">Sélectionner un statut</option>
+                                <option value="Dossier créé">Dossier créé</option>
+                                <option value="Dossier envoyé">Dossier envoyé</option>
+                                <option value="Rdv replanifié">Rdv replanifié</option>
+                                <option value="CDC envoyé au garage">CDC envoyé au garage</option>
+                                <option value="Photos Avant">Photos Avant</option>
+                                <option value="Offre communiquée">Offre communiquée</option>
+                                <option value="Devis envoyé par le garage">Devis envoyé par le garage</option>
+                                <option value="Instance Accord compagnie">Instance Accord compagnie</option>
+                                <option value="Instance Accord Expert2">Instance Accord Expert2</option>
+                                <option value="Accord à modifier">Accord à modifier</option>
+                                <option value="Accord à envoyer">Accord à envoyer</option>
+                                <option value="Devis validé">Devis validé</option>
+                                <option value="Demande 2e accord">Demande 2e accord</option>
+                                <option value="Attente facture">Attente facture</option>
+                                <option value="Instance FFT/rapport">Instance FFT/rapport</option>
+                                <option value="Instance RDV Client ">Instance RDV Client</option>
+                                <option value="Instance publication rapport">Instance publication rapport</option>
+                                <option value="Dossier complété">Dossier complété</option>
+                                <option value="Dossier réglé">Dossier réglé</option>
+                                <option value="Dossier sans suite">Dossier sans suite</option>
+                                <option value="Dossier sans suite après expertise">Dossier sans suite après expertise</option>
+                                <option value="Annulé par l'expert">Annulé par l'expert</option>
+                                <option value="Dossier traité en Hifad">Dossier traité en Hifad</option>
+                                <option value="Rapport rejeté">Rapport rejeté</option>
+                                <option value="Dossier en instruction">Dossier en instruction</option>
+                                <option value="Dossier rejeté">Dossier rejeté</option>
+                            </select>
+                            <button type="button" class="btn btn-light" onclick="clearField('statut')" style="width: 40px; margin-left: 0px;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
-                    <br/>
-                    <button type="submit" class="btn btn-primary">Filtrer</button>
+                    <button type="submit" class="btn btn-primary" style="white-space: nowrap;margin-left: 5px;">Filtrer</button>
                 </form>
+                
+                
 
                 <br/>
                 <div class="card-body">
@@ -284,7 +334,7 @@
                                             <td>{% if i.Photos_Avant %}<a href="{{ i.Photos_Avant }}" target="_blank"><i class="far fa-image"></i></a>{% endif %}</td>
                                             <td><a href="{% url 'details' i.id %}">{{ i.RateFraude }}%</a></td>
                                             <td>{{ i.Expert }}</td>
-                                            <td>{{ i.ImmatriculationAdverse }}</td>
+                                            <td>{% if i.ImmatriculationAdverse != null and i.ImmatriculationAdverse != None %} {{ i.ImmatriculationAdverse }} {% endif %}</td>
                                             <td>{{ i.statutdoute }}</td>
                                         </tr>
                                     {% endfor %}
@@ -377,6 +427,39 @@
                 <br>
             </div>
         </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var fixedDateElement = document.getElementById('fixed_date');
+                var statutElement = document.getElementById('statut');
+            
+                if (fixedDateElement) {
+                    fixedDateElement.value = "{{ request.GET.fixed_date|default:'' }}";
+                }
+                if (statutElement) {
+                    statutElement.value = "{{ request.GET.statut|default:'' }}";
+                }
+            });
+            </script>
+            <script>
+                function clearField(fieldId) {
+                    var element = document.getElementById(fieldId);
+                    if (element.type === 'date' || element.type === 'text') {
+                        element.value = '';
+                    } else if (element.tagName === 'SELECT') {
+                        element.selectedIndex = 0;
+                    }
+                }
+
+            </script>
+            <script>
+                function clearSelection(selectId) {
+                    var selectElement = document.getElementById(selectId);
+                    selectElement.selectedIndex = 0; 
+                    selectElement.form.submit(); 
+                }
+                </script>
+                
+
     </div>
 
     <!-- JavaScript Libraries -->

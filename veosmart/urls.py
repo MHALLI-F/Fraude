@@ -52,6 +52,7 @@ urlpatterns = [
     path('filterDos/',filterDos,name="filterDos"),
     path('filterDosAT/',filterDosAT,name="filterDosAT"),
     path('filterDosT/',filterDosT,name="filterDosT"),
+    path('dossieratrait/', filter_by_rate_fraude, name='filter_by_rate_fraude'),
 
     path('filter_veoservices_by_date_and_status/',filter_veoservices_by_date_and_status,name="filter_veoservices_by_date_and_status"),
     path('filter_veoservices_by_date_and_statusAT/',filter_veoservices_by_date_and_statusAT,name="filter_veoservices_by_date_and_statusAT"),

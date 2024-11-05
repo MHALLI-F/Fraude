@@ -109,28 +109,40 @@
 {% load static %}
 <div class="container-fluid position-relative bg-white p-0">
     <div class="row h-100">
-        <!-- Sidebar Start -->
-        <div class="col-md-2">
-            <div class="sidebar pe-4 pb-3 position-fixed">
-                <nav class="navbar bg-light navbar-light">
-                    <a href="/home" class="navbar-brand mx-4 mb-3">
-                        <img class="" src="{% static 'img/logo.png' %}" alt="" style="width: 120px; height: 100px;">
-                    </a>
-                    <div class="navbar-nav w-100">
-                        <a href="/home" class="nav-item nav-link "><i class="fa fa-home me-2"></i>Accueil</a>
-                        <a href="/dt" class="nav-item nav-link" style="white-space: nowrap;">
-                            <i class="fa fa-hourglass-start me-2"></i>
-                            Dossier à traiter<span class="badge rounded-pill badge-notification bg-danger" style="margin-left: 5px; vertical-align: middle;">{{ total_a_traiter }}</span>
-                        </a>
-                        <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossier traité</a>
-                        <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace Recette</a>
-                        <a href="/admin" class="nav-item nav-link"><i class="fa fa-user-cog me-2"></i>Admin</a>
-                        <a href="/dashboard"  class="nav-item nav-link"><i class="fa fa-chart-line me-2"></i>Statistique</a>
-                    </div>
-                </nav>
+<!-- Sidebar Start -->
+<div class="col-md-2">
+    <div class="sidebar pe-4 pb-3 position-fixed">
+        <nav class="navbar bg-light navbar-light">
+            <a href="/home" class="navbar-brand mx-4 mb-3">
+                <img src="{% static 'img/logo.png' %}" alt="" style="width: 120px; height: 100px;">
+            </a>
+            {% if user.is_authenticated %}
+            <!-- Texte sous le logo avec un décalage à droite -->
+            <div style="text-align: center; margin-bottom: 20px; color: black; font-weight: bold; padding-left: 30px;">
+                Bonjour, {{ user.first_name|default:"Veosmart" }}
             </div>
-        </div>
-        <!-- Sidebar End -->
+            {% endif %}
+            <div class="navbar-nav w-100">
+                <a href="/home" class="nav-item nav-link "><i class="fa fa-home me-2"></i>Accueil</a>
+                <a href="/dt" class="nav-item nav-link" style="white-space: nowrap;">
+                    <i class="fa fa-hourglass-start me-2"></i>
+                    Dossier à traiter<span class="badge rounded-pill badge-notification bg-danger" style="margin-left: 5px; vertical-align: middle;">{{ total_a_traiter }}</span>
+                </a>
+                <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossier traité</a>
+                {% if user.is_superuser %}
+                <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace Recette</a>
+                <a href="/admin" class="nav-item nav-link"><i class="fa fa-user-cog me-2"></i>Admin</a>
+                {% endif %}
+                <a href="/dashboard" class="nav-item nav-link"><i class="fa fa-chart-line me-2"></i>Statistique</a>
+                <a href="/logout/" class="nav-item nav-link"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a>
+            </div>
+        </nav>
+    </div>
+</div>
+<!-- Sidebar End -->
+
+
+
         <!-- Details and Observation Start -->
         <div class="col-md-10" style="padding-top: 20px;">
             <div class="row">
@@ -139,7 +151,7 @@
                         <div class="card-body">
                             <h6 style="font-size: 14px; color:#034B6F;">
                                 <nobr>Détail de Dossier |
-                                    <a href="https://omegaflow.ma/#dossiers-consult/details-dosier-consult/{{ Veo.Ref_knk }}" target="_blank" style="color: #4F5052; text-decoration: none;">
+                                    <a href="https://omegaflow.ma/#cie-tous-dossiers/view-dossier-details4/669f8d7b6a1fb400288588b2/{{ Veo.Ref_knk }}" target="_blank" style="color: #4F5052; text-decoration: none;">
                                         <font color="#ec0b0b">Dossier Omega <i class="fas fa-external-link-alt"></i></font>
                                     </a>
                                 </nobr>
@@ -151,7 +163,7 @@
                                             <div class="detail-item">
                                                 <span class="detail-title">Dossier</span>
                                                 <span class="detail-content">{{ Veo.Dossier }} |
-                                                    <a href="https://omegaflow.ma/#dossiers-consult/details-dosier-consult/{{ Veo.Ref_knk }}" target="_blank">
+                                                    <a href="https://omegaflow.ma/#cie-tous-dossiers/view-dossier-details4/669f8d7b6a1fb400288588b2/{{ Veo.Ref_knk }}" target="_blank">
                                                         <strong>Voir sur Omega <i class="fas fa-external-link-alt"></i></strong>
                                                     </a>
                                                 </span>
@@ -331,7 +343,7 @@
                                                 <div class="detail-item">
                                                     <span class="detail-title" style="white-space: normal; display: block;">Sinistre avec mm numéro de chassis et immatriculation différente</span>
                                                     <span class="detail-content">{{ R10_Dos.Dossier }} |
-                                                        <a href="https://omegaflow.ma/#dossiers-consult/details-dosier-consult/{{ R10_Dos.Ref_knk }}" target="_blank">
+                                                        <a href="https://omegaflow.ma/#cie-tous-dossiers/view-dossier-details4/669f8d7b6a1fb400288588b2/{{ R10_Dos.Ref_knk }}" target="_blank">
                                                             Voir sur Omega<i class="fas fa-external-link-alt"></i>
                                                         </a>
                                                     </span>
@@ -343,7 +355,7 @@
                                                 <div class="detail-item">
                                                     <span class="detail-title" style="white-space: normal; display: block;">Sinistre avec la mm immatriculation principale et Adverse</span>
                                                     <span class="detail-content">{{ R12_Dos.Dossier }} |
-                                                        <a href="https://omegaflow.ma/#dossiers-consult/details-dosier-consult/{{ R12_Dos.Ref_knk }}" target="_blank">
+                                                        <a href="https://omegaflow.ma/#cie-tous-dossiers/view-dossier-details4/669f8d7b6a1fb400288588b2/{{ R12_Dos.Ref_knk }}" target="_blank">
                                                             Voir sur Omega<i class="fas fa-external-link-alt"></i>
                                                         </a>
                                                     </span>
@@ -355,7 +367,7 @@
                                                 <div class="detail-item">
                                                     <span class="detail-title">Dossier Douteux Omega</span>
                                                     <span class="detail-content"> 
-                                                        <a href="https://omegaflow.ma/#dossiers-consult/details-dosier-consult/{{ R13_Dos.Ref_knk }}" target="_blank">
+                                                        <a href="https://omegaflow.ma/#cie-tous-dossiers/view-dossier-details4/669f8d7b6a1fb400288588b2/{{ R13_Dos.Ref_knk }}" target="_blank">
                                                             {{ R13_Dos.Dossier }}  <i class="fas fa-external-link-alt"></i>
                                                         </a>
                                                     </span>
@@ -366,19 +378,23 @@
                                 </div>
                                 <div class="col-sm-4 observation-container">
                                     <div class="card-body">
+                                        {% if Veo.utilisateur %}
                                         <p class="card-text">
                                             <div class="detail-item">
                                                 <span class="detail-title">Traité par</span>
                                                 <span class="detail-content">{{ Veo.utilisateur }}</span>
-                                            </div>
+                                            </div>{% endif %}
+                                        {% if Veo.RateFraude %}
                                             <div class="detail-item">
                                                 <span class="detail-title">Pourcentage Fraude</span>
                                                 <span class="detail-content">{{ Veo.RateFraude }}%</span>
-                                            </div>
+                                            </div>{% endif %}
+                                        {% if Veo.statutdoute %}
                                             <div class="detail-item">
                                                 <span class="detail-title">Statut doute</span>
                                                 <span class="detail-content">{{ Veo.statutdoute }}</span>
-                                            </div>
+                                            </div>{% endif %}
+                                        
                                             <div class="detail-item">
                                                 <span class="detail-title">Date traitement</span>
                                                 <span class="detail-content">{{ Veo.date_obs }}</span>
@@ -432,10 +448,10 @@
                         var demo = document.getElementById("demo");
                         
 
-                        if ((select.value == "confirme" || select.value == "rejete") && observation.value.trim() === "") {
+                        if ((select.value == "confirme" || select.value== "rejete" ) && observation.value.trim() === "") {
                             event.preventDefault(); 
                             observation.required = true;
-                            demo.innerHTML = "Merci de taper une observation si le doute est confirmé ou rejeté.";
+                            demo.innerHTML = "Merci de taper une observation si le doute est confirmé ou rejeté .";
                             observation.focus(); 
                         } else {
                             observation.required = false;
@@ -444,7 +460,7 @@
                     });
                 </script>
                 
-                <br>
+                <br/>
                 <div class="mt-4 mb-2 text-center">
                     <h5 class="text-uppercase" style="margin-bottom: 20px; font-weight: bold; color: #333;">Détails de fraude</h5>
                 </div>
@@ -520,7 +536,7 @@
                                 {% endif %}
                                 {% if R5 != 0 %}
                                     <tr>
-                                        <td class="rule-description">La date d'assistance est après 20h et avant 7h du matin.</td>
+                                        <td class="rule-description">La date d'assistance est après 22h et avant 7h du matin.</td>
                                         <td class="rule-weight">10%</td>
                                     </tr>
                                 {% endif %}
@@ -561,48 +577,27 @@
                                     </tr>
                                 {% endif %}
 
-                                {% if R12 != 0 %}
-                                    <tr>
-                                        <td class="rule-description">Il y a un autre sinistre avec la même Immatriculation Principale et Adverse :</td>
-                                        <td class="rule-weight">30%</td>
-                                    </tr>
-                                {% endif %}
-                                {% if R13 != 0 %}
-                                <tr>
-                                    <td class="rule-description">
-                                        {% if R13 == 30 %}
-                                            l'immatriculation principale a déjà été impliquée dans un dossier historique doute confirmé  :
-                                        {% elif R13 == 15 %}
-                                            l'immatriculation Adverse a déjà été impliquée dans un dossier historique doute rejeté  :
-                                        {% endif %}
-                                    </td>
-                                    <td class="rule-weight">{{ R13 }}%</td>
-                                </tr>
-                            {% endif %}
-                            
 
-                                
-
-                                {% if R15 != 0 %}
+                                <!--{% if R15 != 0 %}
                                     <tr>
                                         <td class="rule-description">Le même nom {{R15_CN}} est associé aux deux immatriculations impliquées dans le dossier.</td>
                                         <td class="rule-weight">5%</td>
                                     </tr>
-                                {% endif %}
+                                {% endif %} -->
 
-                                {% if R16 != 0 %}
+                               <!-- {% if R16 != 0 %}
                                     <tr>
-                                        <td class="rule-description">l'immatriculation principale et son garage ont déjà été impliqués dans un dossier historique signalé douteux:{{R16_Dos}}</td>
+                                        <td class="rule-description">le garage de ce dosser a déjà été impliqué dans un dossier historique signalé douteux:{{R16_Dos}}</td>
                                         <td class="rule-weight">30%</td>
                                     </tr>
-                                {% endif %}
+                                {% endif %}-->
 
-                                {% if R17 != 0 %}
+                             <!--  {% if R17 != 0 %}
                                     <tr>
                                         <td class="rule-description">Le même intermédiaire est impliqué des deux côtés du sinistre.</td>
                                         <td class="rule-weight">5%</td>
                                     </tr>
-                                {% endif %}
+                                {% endif %} --> 
                             </tbody>
                         </table>
                     </div>

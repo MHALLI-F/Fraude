@@ -44,126 +44,493 @@
             overflow-x: hidden;
             padding-top: 20px;
         }
+
         .plotly-graph-container {
             position: absolute;
             top: 0;
-            left: 250px; 
+            left: 250px;
             right: 0;
             bottom: 0;
         }
+
         .main {
             margin-left: 250px;
             padding: 0px 10px;
             height: 100vh;
             overflow-y: auto;
-            background-color: white; 
+            background-color: white;
         }
+
         @media screen and (max-width: 700px) {
-          .sidebar {
-            width: 100%;
-            height: auto;
-            position: relative;
-          }
-          .sidebar a {float: left;}
-          .main {margin-left: 0;}
-        }
-        @media screen and (max-width: 400px) {
-          .sidebar a {
-            text-align: center;
-            float: none;
-          }
-        }
-    </style>
-     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-    var data = JSON.parse("{{ data|escapejs }}");
-    console.log(data);
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
 
-    var labels = data.map(function (item) { return item.Procédure; });
-    var valeursGenerales = data.map(function (item) { return item.doute_general; });
-    var valeursConfirmees = data.map(function (item) { return item.doute_confirme; });
-    var valeursRejetees = data.map(function (item) { return item.doute_rejete; });
+            .sidebar a {
+                float: left;
+            }
 
-    var ctx = document.getElementById('veoservices-chart').getContext('2d');
-
-    var myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Doute Général',
-                    data: valeursGenerales,
-                    backgroundColor: 'rgba(255, 99, 132, 0.5)'
-                },
-                {
-                    label: 'Doute Confirmé',
-                    data: valeursConfirmees,
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)'
-                },
-                {
-                    label: 'Doute Rejeté',
-                    data: valeursRejetees,
-                    backgroundColor: 'rgba(75, 192, 192, 0.5)'
-                }
-            ]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                },
-                x: {
-                    stacked: false 
-                }
+            .main {
+                margin-left: 0;
             }
         }
-    });
-});
+
+        @media screen and (max-width: 400px) {
+            .sidebar a {
+                text-align: center;
+                float: none;
+            }
+        }
+    </style>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var data = JSON.parse("{{ data|escapejs }}");
+            console.log("Data for procedures:", data);
+
+            // Filtrer les données pour exclure certaines valeurs de `Statut` et les enregistrements avec `doute_general` ou `doute_confirme` à zéro
+            var filteredData = data.filter(function (item) {
+                return (item.doute_general !== 0 || item.doute_confirme !== 0) &&
+                    item.Procédure !== 'Changement procédure' &&
+                    item.Procédure !== 'Expert Test' &&
+                    item.Procédure !== 'Garage Test' &&
+                    item.Procédure !== 'Dossier sans suite' &&
+                    item.Procédure !== 'Dossier sans suite après expertise';
+            });
+
+            var labels = filteredData.map(function (item) { return item.Procédure; });
+            var valeursGenerales = filteredData.map(function (item) { return item.doute_general; });
+            var valeursConfirmees = filteredData.map(function (item) { return item.doute_confirme; });
+
+            var ctx = document.getElementById('veoservices-chart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Doute Traité', data: valeursGenerales, backgroundColor: 'rgba(255, 99, 132, 0.5)' },
+                        { label: 'Doute Confirmé', data: valeursConfirmees, backgroundColor: 'rgba(54, 162, 235, 0.5)' }
+                    ]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true }, x: { stacked: false } },
+                    plugins: {
+                        datalabels: {
+                            color: '#000000',
+                            display: function (context) {
+                                return context.dataset.data[context.dataIndex] !== 0;
+                            },
+                            formatter: function (value, context) {
+                                return value;
+                            },
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 4,
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+
+
+
+            var fraudData = JSON.parse("{{ fraud_data|escapejs }}").filter(item =>
+                item.month !== 'Dossier sans suite' &&
+                item.month !== 'Changement procédure' &&
+                item.month !== 'Expert Test' &&
+                item.month !== 'Garage Test' &&
+                item.month !== 'Dossier sans suite après expertise'
+            );
+
+            console.log("Data for fraud chart after filtering:", fraudData);
+
+            var ctx_fraud = document.getElementById('fraud-chart').getContext('2d');
+            var fraudChart = new Chart(ctx_fraud, {
+                type: 'bar',
+                data: {
+                    labels: fraudData.map(item => item.month),
+                    datasets: [
+                        {
+                            label: 'Nombre de Dossiers Frauduleux',
+                            data: fraudData.map(item => item.count),
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgb(255, 99, 132)',
+                            fill: false
+                        },
+                        {
+                            label: 'Taux Moyen de Fraude (%)',
+                            data: fraudData.map(item => item.average_fraud_rate),
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            fill: false,
+                            yAxisID: 'y-axis-2'
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        yAxes: [
+                            { id: 'y-axis-1', type: 'linear', position: 'left' },
+                            { id: 'y-axis-2', type: 'linear', position: 'right', ticks: { beginAtZero: true, callback: function (value) { return value + '%'; } } }
+                        ]
+                    },
+                    plugins: {
+                        datalabels: {
+                            color: '#000000',
+                            display: function (context) {
+                                return context.dataset.data[context.dataIndex] !== 0;
+                            },
+                            formatter: function (value, context) {
+                                return context.dataset.label.includes('Taux') ? value.toFixed(2) + '%' : value;
+                            },
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 4,
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+
+
+
+            var expertData = JSON.parse("{{ expert_data|escapejs }}").filter(item =>
+                item.Expert !== 'Expert Test' &&
+                item.Expert !== 'Garage Test' &&
+                item.Expert !== 'Changement procédure' &&
+                item.Expert !== 'Dossier sans suite' &&
+                item.Expert !== 'Dossier sans suite après expertise'
+            );
+            if (expertData.length === 0) {
+                console.error("No expert data available");
+                return;
+            }
+
+            var ctx_expert = document.getElementById('expert-fraud-chart').getContext('2d');
+            if (!ctx_expert) {
+                console.error("The canvas context could not be found.");
+                return;
+            }
+
+            var expertChart = new Chart(ctx_expert, {
+                type: 'bar',
+                data: {
+                    labels: expertData.map(item => item.Expert),
+                    datasets: [{
+                        label: 'Nombre de Dossiers',
+                        data: expertData.map(item => item.count),
+                        backgroundColor: 'rgba(99, 132, 255, 0.5)',
+                        borderColor: 'rgba(99, 132, 255, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Taux Moyen de Fraude (%)',
+                        data: expertData.map(item => parseFloat(item.average_fraud_rate).toFixed(2)),
+                        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Nombre de Dossiers'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Taux Moyen de Fraude (%)'
+                            },
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function (value) { return value.toFixed(2) + '%'; }
+                            }
+                        }
+                    },
+                    plugins: {
+                        datalabels: {
+                            color: '#000000',
+                            display: function (context) {
+                                return context.dataset.data[context.dataIndex] !== 0;
+                            },
+                            formatter: function (value, context) {
+                                return context.dataset.label.includes('Taux') ? value + '%' : value;
+                            },
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 4,
+
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+
+
+
+
+            var confirmed_doubt_data = JSON.parse('{{ confirmed_doubt_data|safe }}').filter(item =>
+                item.statutdoute !== 'Changement procédure' &&
+                item.statutdoute !== 'Expert Test' &&
+                item.statutdoute !== 'Garage Test' &&
+                item.statutdoute !== 'Dossier sans suite' &&
+                item.statutdoute !== 'Dossier sans suite après expertise'
+            );
+
+            console.log("Data for confirmed doubt chart after filtering:", confirmed_doubt_data);
+
+            var ctx_confirmedDoubt = document.getElementById('confirmed-doubt-chart').getContext('2d');
+            var confirmedDoubtChart = new Chart(ctx_confirmedDoubt, {
+                type: 'bar',
+                data: {
+                    labels: confirmed_doubt_data.map(item => item.statutdoute),
+                    datasets: [{
+                        label: 'Nombre de Dossiers',
+                        data: confirmed_doubt_data.map(item => item.count),
+                        backgroundColor: 'rgba(99, 132, 255, 0.5)',
+                        borderColor: 'rgba(99, 132, 255, 1)'
+                    }, {
+                        label: 'Taux Moyen de Fraude (%)',
+                        data: confirmed_doubt_data.map(item => parseFloat(item.average_fraud_rate).toFixed(2)),
+                        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        yAxisID: 'y-axis-rate'
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            id: 'y-axis-1',
+                            type: 'linear',
+                            position: 'left',
+                            ticks: {
+                                beginAtZero: true,
+                                suggestedMax: 10
+                            }
+                        }, {
+                            id: 'y-axis-rate',
+                            type: 'linear',
+                            position: 'right',
+                            ticks: {
+                                beginAtZero: true,
+                                suggestedMax: 1,
+                                callback: function (value) { return value.toFixed(2) + '%'; }
+                            }
+                        }]
+                    },
+                    plugins: {
+                        datalabels: {
+                            color: '#000',
+                            display: function (context) {
+                                return context.dataset.data[context.dataIndex] !== 0;
+                            },
+                            formatter: function (value, context) {
+                                return context.dataset.label.includes('Taux') ? value + '%' : value;
+                            },
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 4,
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+            // Variable globale pour stocker le graphique
+            //var procedureChart = null;
+
+            //function renderProcedureChart() {
+            var data_for_chart = JSON.parse("{{ data_for_chart|escapejs }}");
+
+            // Détruire le graphique précédent s'il existe
+            // if (procedureChart !== null) {
+            // procedureChart.destroy();
+            //}
+
+            // Créer un nouveau graphique
+            var ctx = document.getElementById('procedure-dossiers-chart').getContext('2d');
+            procedureChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data_for_chart.map(function (item) { return item.Procédure; }),
+                    datasets: [
+                        {
+                            label: 'Dossiers Généraux',
+                            data: data_for_chart.map(function (item) { return item.total_dossiers; }),
+                            backgroundColor: 'rgba(99, 132, 255, 0.5)'
+                        },
+                        {
+                            label: 'Dossiers Douteux',
+                            data: data_for_chart.map(function (item) { return item.douteux_dossiers; }),
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Nombre de Dossiers'
+                            }
+                        }
+                    },
+                    plugins: {
+                        datalabels: {
+                            color: '#000',
+                            display: function (context) {
+                                return context.dataset.data[context.dataIndex] !== 0;
+                            },
+                            formatter: function (value) {
+                                return value;
+                            },
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 4,
+                            font: {
+                                size: 12,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+            //}
+
+            //renderProcedureChart();
+
+
+
+        });
 
     </script>
 </head>
 
-<body style="background-color: white;"> 
+<body style="background-color: white;">
 
-<!-- Sidebar Start -->
-<div class="sidebar pe-4 pb-3">
-    <nav class="navbar bg-light navbar-light">
-        
-        <div class="navbar-brand mx-4 mb-3" style="display: flex; flex-direction: column; align-items: center; width: 100%; height: auto;">
-            <a href="/home">
-                <img src="{% static 'img/logo.png' %}" alt="" style="width: 120px; height: 100px;">
-            </a>
-            {% if user.is_authenticated %}
-              
+    <!-- Sidebar Start -->
+    <div class="sidebar pe-4 pb-3">
+        <nav class="navbar bg-light navbar-light">
+
+            <div class="navbar-brand mx-4 mb-3"
+                style="display: flex; flex-direction: column; align-items: center; width: 100%; height: auto;">
+                <a href="/home">
+                    <img src="{% static 'img/logo.png' %}" alt="" style="width: 120px; height: 100px;">
+                </a>
+                {% if user.is_authenticated %}
+
                 <div style="display: flex; align-items: center;">
                     <p style="margin-top: 10px; margin-bottom: 0;">Bonjour, {{ user_name }}</p>
                 </div>
-            {% endif %}
-        </div>
-        <div class="navbar-nav w-100">
-            <a href="/home" class="nav-item nav-link"><i class="fa fa-home me-2"></i>Accueil</a>
-            <a href="/dt" class="nav-item nav-link" style="white-space: nowrap;">
-                <i class="fa fa-hourglass-start me-2"></i>
-                Dossier à traiter<span class="badge rounded-pill badge-notification bg-danger" style="margin-left: 5px; vertical-align: middle;">{% get_total_a_traiter %}</span>
-            </a>
-            <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossier traité</a>
-            {% if SupUse == True %}
-                <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace Recette</a>
+                {% endif %}
+            </div>
+            <div class="navbar-nav w-100">
+                <a href="/home" class="nav-item nav-link"><i class="fa fa-home me-2"></i>Accueil</a>
+                <a href="/dt" class="nav-item nav-link" style="white-space: nowrap;">
+                    <i class="fa fa-hourglass-start me-2"></i>
+                    Dossiers à traiter<span class="badge rounded-pill badge-notification bg-danger"
+                        style="margin-left: 5px; vertical-align: middle;">{{ total_a_traiter }}</span>
+                </a>
+                <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossiers traités</a>
+                {% if SupUse == True %}
+                <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace
+                    Recette</a>
                 <a href="/admin" class="nav-item nav-link"><i class="fa fa-user-cog me-2"></i>Admin</a>
-            {% endif %}
-            <a href="/dashboard" class="nav-item nav-link active"><i class="fa fa-chart-line me-2"></i>Statistique</a>
-            <a href="/logout/" class="nav-item nav-link"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a>
-        </div>
-    </nav>
-</div>
-<!-- Sidebar End -->
+                {% endif %}
+                <a href="/dashboard" class="nav-item nav-link active"><i
+                        class="fa fa-chart-line me-2"></i>Statistique</a>
+                <a href="/logout/" class="nav-item nav-link"><i class="fas fa-sign-out-alt me-2"></i>Déconnexion</a>
+            </div>
+        </nav>
+    </div>
+    <!-- Sidebar End -->
 
 
     <div class="main">
         <h1>Répartition des dossiers par procédure et statut de doute</h1>
-       <canvas id="veoservices-chart" width="800" height="400"></canvas>
+        <canvas id="veoservices-chart" width="800" height="400"></canvas>
+
+        <h1>Répartition des dossiers généraux et douteux par procédure
+        </h1>
+        <canvas id="procedure-dossiers-chart" width="800" height="400"></canvas>
+
+
+        <h1>Nombre et taux de dossiers frauduleux par mois</h1>
+        <canvas id="fraud-chart" width="800" height="400"></canvas>
+
+        <h1>Nombre de dossiers et taux de fraude par expert</h1>
+        <canvas id="expert-fraud-chart" width="800" height="400"></canvas>
+
+        <!-- <h1>Nombre de dossiers et taux de fraude par garage</h1> 
+        <canvas id="garage-fraud-chart" width="800" height="400"></canvas>-->
+        <h1>Tableau des dossiers et taux de fraude par garage</h1>
+        <table
+            style="width: 100%; border-collapse: collapse; background-color: white; margin: 20px 0; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+            <thead>
+                <tr>
+                    <th>Nom du Garage</th>
+                    <th>Nombre de Dossiers</th>
+                    <th>Taux Moyen de Fraude (%)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for garage in garage_data|slice:":18" %}
+                <tr>
+                    <td>{{ garage.GaragePN }}</td>
+                    <td>{{ garage.count }}</td>
+                    <td>{{ garage.average_fraud_rate|floatformat:2 }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- <div style="margin-top: 20px;">
+            <h2>Debug Info</h2>
+            <pre>{{ garage_data|safe }}</pre>
+        </div> -->
+
+
+
+
+        <h1>Nombre et taux de dossiers avec doute confirmé</h1>
+        <canvas id="confirmed-doubt-chart" width="800" height="400"></canvas>
+
+
+
+
     </div>
 
     <!-- JavaScript Libraries -->
