@@ -32,6 +32,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['92.222.221.200', 'fraude.omegasin.ma']
 
+#INTERNAL_IPS = [
+    #'127.0.0.1',            # Pour l'accès local
+    #'92.222.221.200',       # L'adresse IP publique de ton serveur
+    
+#]
+
+
 # Application des paramètres de messagerie
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -55,6 +62,7 @@ INSTALLED_APPS = [
     'django_filters',
     'dbbackup',
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
+     #'debug_toolbar',
 
 ]
 DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
@@ -71,6 +79,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     #'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_plotly_dash.middleware.BaseMiddleware',
+    #'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 

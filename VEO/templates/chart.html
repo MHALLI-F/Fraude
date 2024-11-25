@@ -94,6 +94,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            
             var data = JSON.parse("{{ data|escapejs }}");
             console.log("Data for procedures:", data);
 
@@ -117,8 +118,8 @@
                 data: {
                     labels: labels,
                     datasets: [
-                        { label: 'Doute Traité', data: valeursGenerales, backgroundColor: 'rgba(255, 99, 132, 0.5)' },
-                        { label: 'Doute Confirmé', data: valeursConfirmees, backgroundColor: 'rgba(54, 162, 235, 0.5)' }
+                        { label: 'Doute traité', data: valeursGenerales, backgroundColor: 'rgba(255, 99, 132, 0.5)' },
+                        { label: 'Doute confirmé', data: valeursConfirmees, backgroundColor: 'rgba(54, 162, 235, 0.5)' }
                     ]
                 },
                 options: {
@@ -144,8 +145,66 @@
                 plugins: [ChartDataLabels]
             });
 
+            
+            var queryset = JSON.parse("{{ for_monthly_chart|escapejs }}");
+    console.log("Data for procedures par mois:", queryset);
 
+    // Filtrer les données pour inclure seulement celles avec des doutes traités ou confirmés et exclure certaines catégories
+    var filteredData = queryset.filter(function (item) {
+        return (item.doute_general !== 0 || item.doute_confirme !== 0) &&
+               item.month !== 'Changement procédure' &&
+               item.month !== 'Expert Test' &&
+               item.month !== 'Garage Test' &&
+               item.month !== 'Dossier sans suite' &&
+               item.month !== 'Dossier sans suite après expertise';
+    });
 
+    // Formater les dates pour enlever le temps et la zone horaire
+    var labels = filteredData.map(function (item) {
+        return item.month.split("T")[0]; // Sépare la date du temps et prend la partie date uniquement
+    });
+    var valeursGenerales = filteredData.map(function (item) { return item.doute_general; });
+    var valeursConfirmees = filteredData.map(function (item) { return item.doute_confirme; });
+
+    var ctx = document.getElementById('monthly-veoservices-chart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Doute traité', data: valeursGenerales, backgroundColor: 'rgba(255, 99, 132, 0.5)' },
+                { label: 'Doute confirmé', data: valeursConfirmees, backgroundColor: 'rgba(54, 162, 235, 0.5)' }
+            ]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true },
+                x: { stacked: false }
+            },
+            plugins: {
+                datalabels: {
+                    color: '#000000',
+                    display: function (context) {
+                        return context.dataset.data[context.dataIndex] !== 0;
+                    },
+                    formatter: function (value, context) {
+                        return value;
+                    },
+                    anchor: 'end',
+                    align: 'top',
+                    offset: 4,
+                    font: {
+                        weight: 'bold'
+                    }
+                }
+            }
+        },
+        plugins: [ChartDataLabels]
+    });
+
+            
+
+    
 
             var fraudData = JSON.parse("{{ fraud_data|escapejs }}").filter(item =>
                 item.month !== 'Dossier sans suite' &&
@@ -161,17 +220,17 @@
             var fraudChart = new Chart(ctx_fraud, {
                 type: 'bar',
                 data: {
-                    labels: fraudData.map(item => item.month),
+                    labels: fraudData.map(item => item.month.split("T")[0]), // Modification ici pour enlever le temps
                     datasets: [
                         {
-                            label: 'Nombre de Dossiers Frauduleux',
+                            label: 'Nombre des dossiers traités',
                             data: fraudData.map(item => item.count),
                             backgroundColor: 'rgba(255, 99, 132, 0.5)',
                             borderColor: 'rgb(255, 99, 132)',
                             fill: false
                         },
                         {
-                            label: 'Taux Moyen de Fraude (%)',
+                            label: 'Taux moyen de fraude (%)',
                             data: fraudData.map(item => item.average_fraud_rate),
                             backgroundColor: 'rgba(54, 162, 235, 0.5)',
                             borderColor: 'rgb(54, 162, 235)',
@@ -211,13 +270,8 @@
 
 
 
-            var expertData = JSON.parse("{{ expert_data|escapejs }}").filter(item =>
-                item.Expert !== 'Expert Test' &&
-                item.Expert !== 'Garage Test' &&
-                item.Expert !== 'Changement procédure' &&
-                item.Expert !== 'Dossier sans suite' &&
-                item.Expert !== 'Dossier sans suite après expertise'
-            );
+            var expertData = JSON.parse("{{ expert_data|escapejs }}");
+
             if (expertData.length === 0) {
                 console.error("No expert data available");
                 return;
@@ -234,13 +288,13 @@
                 data: {
                     labels: expertData.map(item => item.Expert),
                     datasets: [{
-                        label: 'Nombre de Dossiers',
+                        label: 'Nombre de dossiers traités',
                         data: expertData.map(item => item.count),
                         backgroundColor: 'rgba(99, 132, 255, 0.5)',
                         borderColor: 'rgba(99, 132, 255, 1)',
                         borderWidth: 1
                     }, {
-                        label: 'Taux Moyen de Fraude (%)',
+                        label: 'Taux moyen de fraude (%)',
                         data: expertData.map(item => parseFloat(item.average_fraud_rate).toFixed(2)),
                         backgroundColor: 'rgba(255, 206, 86, 0.5)',
                         borderColor: 'rgba(255, 206, 86, 1)',
@@ -312,12 +366,12 @@
                 data: {
                     labels: confirmed_doubt_data.map(item => item.statutdoute),
                     datasets: [{
-                        label: 'Nombre de Dossiers',
+                        label: 'Nombre de dossiers',
                         data: confirmed_doubt_data.map(item => item.count),
                         backgroundColor: 'rgba(99, 132, 255, 0.5)',
                         borderColor: 'rgba(99, 132, 255, 1)'
                     }, {
-                        label: 'Taux Moyen de Fraude (%)',
+                        label: 'Taux moyen de fraude (%)',
                         data: confirmed_doubt_data.map(item => parseFloat(item.average_fraud_rate).toFixed(2)),
                         backgroundColor: 'rgba(255, 206, 86, 0.5)',
                         borderColor: 'rgba(255, 206, 86, 1)',
@@ -386,12 +440,12 @@
                     labels: data_for_chart.map(function (item) { return item.Procédure; }),
                     datasets: [
                         {
-                            label: 'Dossiers Généraux',
+                            label: 'Dossiers généraux',
                             data: data_for_chart.map(function (item) { return item.total_dossiers; }),
                             backgroundColor: 'rgba(99, 132, 255, 0.5)'
                         },
                         {
-                            label: 'Dossiers Douteux',
+                            label: 'Dossiers douteux',
                             data: data_for_chart.map(function (item) { return item.douteux_dossiers; }),
                             backgroundColor: 'rgba(255, 99, 132, 0.5)'
                         }
@@ -432,6 +486,59 @@
 
             //renderProcedureChart();
 
+            var ctx = document.getElementById('timelyFraudChart').getContext('2d');
+var timelyFraudData = JSON.parse("{{ timely_fraud_data|escapejs }}");
+
+var fraudChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: timelyFraudData.map(item => new Date(item.month).toISOString().substring(0, 7)),
+        datasets: [{
+            label: 'Dossiers traités',
+            data: timelyFraudData.map(item => item.total_count),
+            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+        }, {
+            label: 'Dossiers douteux avec fraude ≥ 30%',
+            data: timelyFraudData.map(item => item.high_fraud_count),
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value, index, values) {
+                        return value;
+                    }
+                }
+            }
+        },
+        plugins: {
+            datalabels: {
+                color: '#000000',
+                display: function(context) {
+                    return context.dataset.data[context.dataIndex] !== 0; 
+                },
+                formatter: function(value, context) {
+                    return context.dataset.label.includes('Fraude') ? value + '%' : value;
+                },
+                anchor: 'end',
+                align: 'top',
+                offset: 4,
+                font: {
+                    weight: 'bold'
+                }
+            }
+        }
+    },
+    plugins: [ChartDataLabels]
+});
+
 
 
         });
@@ -466,8 +573,8 @@
                 </a>
                 <a href="/dtraités" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Dossiers traités</a>
                 {% if SupUse == True %}
-                <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace
-                    Recette</a>
+               <!-- <a href="/home_test" class="nav-item nav-link"><i class="fa fa-clipboard-list me-2"></i>Espace
+                    Recette</a>-->
                 <a href="/admin" class="nav-item nav-link"><i class="fa fa-user-cog me-2"></i>Admin</a>
                 {% endif %}
                 <a href="/dashboard" class="nav-item nav-link active"><i
@@ -480,6 +587,13 @@
 
 
     <div class="main">
+        <h1>Répartition des dossiers traités et des cas de fraude</h1>
+        <canvas id="timelyFraudChart" width="800" height="400"></canvas>
+
+        <h1>Répartition des dossiers et statut de doute par mois</h1>
+        <canvas id="monthly-veoservices-chart"></canvas>
+
+
         <h1>Répartition des dossiers par procédure et statut de doute</h1>
         <canvas id="veoservices-chart" width="800" height="400"></canvas>
 
@@ -488,7 +602,7 @@
         <canvas id="procedure-dossiers-chart" width="800" height="400"></canvas>
 
 
-        <h1>Nombre et taux de dossiers frauduleux par mois</h1>
+        <h1>Nombre et taux de dossiers traités par mois</h1>
         <canvas id="fraud-chart" width="800" height="400"></canvas>
 
         <h1>Nombre de dossiers et taux de fraude par expert</h1>
@@ -501,13 +615,13 @@
             style="width: 100%; border-collapse: collapse; background-color: white; margin: 20px 0; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
             <thead>
                 <tr>
-                    <th>Nom du Garage</th>
-                    <th>Nombre de Dossiers</th>
-                    <th>Taux Moyen de Fraude (%)</th>
+                    <th>Nom du garage</th>
+                    <th>Nombre de dossiers tarités</th>
+                    <th>Taux moyen de fraude (%)</th>
                 </tr>
             </thead>
             <tbody>
-                {% for garage in garage_data|slice:":18" %}
+                {% for garage in garage_data|slice:":20" %}
                 <tr>
                     <td>{{ garage.GaragePN }}</td>
                     <td>{{ garage.count }}</td>
@@ -521,9 +635,6 @@
             <h2>Debug Info</h2>
             <pre>{{ garage_data|safe }}</pre>
         </div> -->
-
-
-
 
         <h1>Nombre et taux de dossiers avec doute confirmé</h1>
         <canvas id="confirmed-doubt-chart" width="800" height="400"></canvas>

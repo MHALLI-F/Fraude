@@ -1,0 +1,5 @@
+nohup: ignoring input
+INFO:     Will watch for changes in these directories: ['/var/www/veopro']
+INFO:     Uvicorn running on http://92.222.221.200:8009 (Press CTRL+C to quit)
+INFO:     Started reloader process [3056842] using watchgod
+ERROR:    Error loading ASGI app. Could not import module "main".
